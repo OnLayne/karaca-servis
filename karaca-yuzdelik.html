@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KARACA YÜZDELİK - Hesaplama Aracı</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #fbbf24;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 14px;
+            color: #fbbf24;
+            margin-top: 5px;
+        }
+        
+        /* Container */
+        .container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Input Groups */
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        /* Result Box */
+        .result-box {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .result-box.negative {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        .result-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .result-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59,130,246,0.4);
+        }
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            margin-top: 8px;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        /* History */
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .history-type.gelir {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .history-type.gider {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .history-amount {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .history-amount.positive {
+            color: #059669;
+        }
+        .history-amount.negative {
+            color: #dc2626;
+        }
+        
+        /* Summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .summary-box {
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .summary-box.gelir {
+            background: #d1fae5;
+        }
+        .summary-box.gider {
+            background: #fee2e2;
+        }
+        .summary-box.total {
+            background: #dbeafe;
+            grid-column: 1 / -1;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .summary-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .summary-box.gelir .summary-value {
+            color: #059669;
+        }
+        .summary-box.gider .summary-value {
+            color: #dc2626;
+        }
+        .summary-box.total .summary-value {
+            color: #1e40af;
+        }
+        
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+        .nav-item.active {
+            color: #3b82f6;
+        }
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #1e40af;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 200;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>KARACA YÜZDELİK</h1>
+        <p>Gelir - Gider - Hesaplama Aracı</p>
+    </div>
+    
+    <div class="container">
+        <!-- Yüzde Hesaplama -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                Yüzde Hesaplama
+            </div>
+            
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Ana Tutar</label>
+                    <input type="number" id="anaTutar" placeholder="0.00" oninput="hesaplaYuzde()">
+                </div>
+                <div class="input-group">
+                    <label>Yüzde (%)</label>
+                    <input type="number" id="yuzde" placeholder="0" oninput="hesaplaYuzde()">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>İşlem Türü</label>
+                <select id="islemTuru" onchange="hesaplaYuzde()">
+                    <option value="ekle">Ekle (Artır)</option>
+                    <option value="cikar">Çıkar (İndirim)</option>
+                    <option value="sadece">Sadece Yüzde Değeri</option>
+                </select>
+            </div>
+            
+            <div class="result-box" id="sonucBox">
+                <div class="result-label">Sonuç</div>
+                <div class="result-value" id="sonuc">0.00 TL</div>
+            </div>
+        </div>
+        
+        <!-- Gelir/Gider Ekle -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Gelir / Gider Ekle
+            </div>
+            
+            <div class="input-group">
+                <label>Açıklama</label>
+                <input type="text" id="aciklama" placeholder="Örn: Kira, Maaş, Satış vb.">
+            </div>
+            
+            <div class="input-group">
+                <label>Tutar</label>
+                <input type="number" id="tutar" placeholder="0.00">
+            </div>
+            
+            <div class="input-group">
+                <label>Tür</label>
+                <select id="tur">
+                    <option value="gelir">Gelir (+)</option>
+                    <option value="gider">Gider (-)</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-primary" onclick="ekleKayit()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Ekle
+            </button>
+        </div>
+        
+        <!-- Özet -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Finansal Özet
+            </div>
+            
+            <div class="summary-grid">
+                <div class="summary-box gelir">
+                    <div class="summary-label">Toplam Gelir</div>
+                    <div class="summary-value" id="toplamGelir">0.00</div>
+                </div>
+                <div class="summary-box gider">
+                    <div class="summary-label">Toplam Gider</div>
+                    <div class="summary-value" id="toplamGider">0.00</div>
+                </div>
+                <div class="summary-box total">
+                    <div class="summary-label">Net Durum</div>
+                    <div class="summary-value" id="netDurum">0.00</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="temizleTumu()">Tümünü Temizle</button>
+        </div>
+        
+        <!-- Geçmiş -->
+        <div class="card" style="margin-bottom: 80px;">
+            <div class="card-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                İşlem Geçmişi
+            </div>
+            
+            <div class="history-list" id="historyList">
+                <p style="text-align:center;color:#9ca3af;padding:20px;">Henüz kayıt yok</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <a href="ana-sayfa.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Ana Sayfa
+        </a>
+        <a href="karaca-yuzdelik.html" class="nav-item active">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Hesapla
+        </a>
+        <a href="karacacheat.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+            AI
+        </a>
+        <a href="karaca-muhasebe.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Muhasebe
+        </a>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // LocalStorage key
+        const STORAGE_KEY = 'karaca_yuzdelik_data';
+        
+        // Load data from storage
+        let kayitlar = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        
+        // Calculate percentage
+        function hesaplaYuzde() {
+            const anaTutar = parseFloat(document.getElementById('anaTutar').value) || 0;
+            const yuzde = parseFloat(document.getElementById('yuzde').value) || 0;
+            const islemTuru = document.getElementById('islemTuru').value;
+            
+            const yuzdeDegeri = (anaTutar * yuzde) / 100;
+            let sonuc;
+            
+            switch(islemTuru) {
+                case 'ekle':
+                    sonuc = anaTutar + yuzdeDegeri;
+                    break;
+                case 'cikar':
+                    sonuc = anaTutar - yuzdeDegeri;
+                    break;
+                case 'sadece':
+                    sonuc = yuzdeDegeri;
+                    break;
+            }
+            
+            document.getElementById('sonuc').textContent = sonuc.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' TL';
+            
+            // Update result box color
+            const sonucBox = document.getElementById('sonucBox');
+            if (sonuc < 0) {
+                sonucBox.classList.add('negative');
+            } else {
+                sonucBox.classList.remove('negative');
+            }
+        }
+        
+        // Add new record
+        function ekleKayit() {
+            const aciklama = document.getElementById('aciklama').value.trim();
+            const tutar = parseFloat(document.getElementById('tutar').value);
+            const tur = document.getElementById('tur').value;
+            
+            if (!aciklama || !tutar || tutar <= 0) {
+                showToast('Lütfen açıklama ve tutar giriniz');
+                return;
+            }
+            
+            const kayit = {
+                id: Date.now(),
+                aciklama: aciklama,
+                tutar: tutar,
+                tur: tur,
+                tarih: new Date().toISOString()
+            };
+            
+            kayitlar.unshift(kayit);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(kayitlar));
+            
+            // Clear inputs
+            document.getElementById('aciklama').value = '';
+            document.getElementById('tutar').value = '';
+            
+            showToast(tur === 'gelir' ? 'Gelir eklendi' : 'Gider eklendi');
+            guncelOzet();
+            guncelHistory();
+        }
+        
+        // Update summary
+        function guncelOzet() {
+            const toplamGelir = kayitlar
+                .filter(k => k.tur === 'gelir')
+                .reduce((sum, k) => sum + k.tutar, 0);
+            
+            const toplamGider = kayitlar
+                .filter(k => k.tur === 'gider')
+                .reduce((sum, k) => sum + k.tutar, 0);
+            
+            const netDurum = toplamGelir - toplamGider;
+            
+            document.getElementById('toplamGelir').textContent = toplamGelir.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('toplamGider').textContent = toplamGider.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('netDurum').textContent = netDurum.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            // Update net durum color
+            const netBox = document.querySelector('.summary-box.total');
+            if (netDurum >= 0) {
+                netBox.style.background = '#d1fae5';
+                document.getElementById('netDurum').style.color = '#059669';
+            } else {
+                netBox.style.background = '#fee2e2';
+                document.getElementById('netDurum').style.color = '#dc2626';
+            }
+        }
+        
+        // Update history list
+        function guncelHistory() {
+            const historyList = document.getElementById('historyList');
+            
+            if (kayitlar.length === 0) {
+                historyList.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:20px;">Henüz kayıt yok</p>';
+                return;
+            }
+            
+            historyList.innerHTML = kayitlar.map(k => `
+                <div class="history-item">
+                    <div>
+                        <span class="history-type ${k.tur}">${k.tur.toUpperCase()}</span>
+                        <div style="margin-top:4px;font-size:12px;color:#374151;">${k.aciklama}</div>
+                        <div style="font-size:11px;color:#9ca3af;">${new Date(k.tarih).toLocaleString('tr-TR')}</div>
+                    </div>
+                    <div class="history-amount ${k.tur === 'gelir' ? 'positive' : 'negative'}">
+                        ${k.tur === 'gelir' ? '+' : '-'} ${k.tutar.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Clear all records
+        function temizleTumu() {
+            if (!confirm('Tüm kayıtları silmek istediğinize emin misiniz?')) return;
+            
+            kayitlar = [];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(kayitlar));
+            
+            showToast('Tüm kayıtlar silindi');
+            guncelOzet();
+            guncelHistory();
+        }
+        
+        // Show toast
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // Initialize
+        guncelOzet();
+        guncelHistory();
+    </script>
+</body>
+</html>

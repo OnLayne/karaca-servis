@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BÖLGE MERKEZ SERVİSİ - Yeni Servis</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            background: #1e40af;
+            color: white;
+            padding: 8px 12px;
+        }
+        .status-bar-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .signal { display: flex; gap: 2px; }
+        .signal-bar { width: 3px; height: 12px; background: white; border-radius: 1px; }
+        .signal-bar.weak { background: rgba(255,255,255,0.5); }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header h1 { font-size: 18px; font-weight: 600; }
+        .icon-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        /* Info Bar */
+        .info-bar {
+            background: white;
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        .info-bar span { color: #6b7280; }
+        .info-bar strong { color: #374151; }
+        .servis-kaynagi { text-align: right; font-size: 12px; }
+        .servis-kaynagi span { color: #9ca3af; }
+        .servis-kaynagi strong { color: #2563eb; }
+        
+        /* Cards */
+        .card {
+            background: white;
+            margin: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: #f3f4f6;
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            font-size: 13px;
+            color: #374151;
+        }
+        .card-body { padding: 12px; }
+        
+        /* Form Elements */
+        .form-group { margin-bottom: 12px; }
+        .form-group:last-child { margin-bottom: 0; }
+        label {
+            display: block;
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        .error-input { border-color: #ef4444 !important; }
+        .error-text {
+            color: #ef4444;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        textarea { resize: none; min-height: 60px; }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .time-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            gap: 8px;
+        }
+        
+        /* Dropdown Button */
+        .dropdown-btn {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            text-align: left;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown-btn::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #6b7280;
+        }
+        
+        /* Bottom Buttons */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-gray {
+            background: #9ca3af;
+            color: white;
+        }
+        .btn-blue {
+            background: #2563eb;
+            color: white;
+        }
+        
+        /* Popup */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: flex-end;
+        }
+        .popup-overlay.show { display: flex; }
+        .popup {
+            width: 100%;
+            background: #1f2937;
+            border-radius: 24px 24px 0 0;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .popup-header {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #374151;
+        }
+        .popup-check {
+            width: 32px;
+            height: 32px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+        }
+        .popup-check svg {
+            width: 18px;
+            height: 18px;
+            color: white;
+        }
+        .popup-title {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .popup-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .popup-item {
+            padding: 14px 16px;
+            color: white;
+            font-size: 15px;
+            border-bottom: 1px solid #374151;
+            cursor: pointer;
+        }
+        .popup-item.selected {
+            background: rgba(37,99,235,0.3);
+            color: #93c5fd;
+        }
+        .popup-footer {
+            padding: 12px;
+            border-top: 1px solid #374151;
+        }
+        .popup-close {
+            width: 100%;
+            padding: 12px;
+            background: #4b5563;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #16a34a;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 200;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-bar-top">
+            <span id="currentTime">14:03</span>
+            <div style="display:flex;align-items:center;gap:6px">
+                <div class="signal">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar weak"></div>
+                </div>
+                <span>94</span>
+            </div>
+        </div>
+        <div class="header">
+            <div class="header-title">
+                <button class="icon-btn" onclick="goHome()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                </button>
+                <h1>Yeni Servis</h1>
+            </div>
+            <button class="icon-btn" onclick="goHome()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Info Bar -->
+    <div class="info-bar">
+        <div>
+            <span>Tarih : </span>
+            <strong id="currentDate">11.03.2026</strong>
+        </div>
+        <strong id="currentTime2">21:13</strong>
+    </div>
+    <div class="info-bar servis-kaynagi">
+        <span>Servis Yetki No : </span>
+        <strong>FMS-42534</strong>
+    </div>
+
+    <!-- Form -->
+    <form id="servisForm">
+        <!-- Müşteri Bilgisi -->
+        <div class="card">
+            <div class="card-header">Müşteri Bilgisi</div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Müşteri Tipi</label>
+                    <select id="musteriTipi">
+                        <option value="Bireysel">Bireysel</option>
+                        <option value="Kurumsal">Kurumsal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Müşteri Adı</label>
+                    <input type="text" id="musteriAdi" placeholder="Müşteri adı">
+                    <div class="error-text" id="error-musteriAdi"></div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Telefon 1</label>
+                        <input type="tel" id="telefon1" placeholder="0(5XX) XXX XXXX">
+                        <div class="error-text" id="error-telefon1"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefon 2</label>
+                        <input type="tel" id="telefon2" placeholder="0(5XX) XXX XXXX">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>İl</label>
+                        <button type="button" class="dropdown-btn" id="ilBtn" onclick="openPopup('il')">İl Seçiniz</button>
+                        <input type="hidden" id="il">
+                        <div class="error-text" id="error-il"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>İlçe</label>
+                        <input type="text" id="ilce" placeholder="İlçe giriniz">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Adres</label>
+                    <textarea id="adres" rows="2" placeholder="Adres"></textarea>
+                    <div class="error-text" id="error-adres"></div>
+                </div>
+                <div class="form-group">
+                    <label>Kimlik No</label>
+                    <input type="text" id="kimlikNo" placeholder="TCKN / Vergi No">
+                </div>
+                <div class="form-group">
+                    <label style="font-weight:600">Müşteri Müsait Olma Zamanı :</label>
+                    <div class="time-row">
+                        <input type="date" id="musaitTarih">
+                        <button type="button" class="dropdown-btn" id="baslangicBtn" onclick="openPopup('baslangic')">09:00</button>
+                        <input type="hidden" id="musaitBaslangic" value="09:00">
+                        <button type="button" class="dropdown-btn" id="bitisBtn" onclick="openPopup('bitis')">18:00</button>
+                        <input type="hidden" id="musaitBitis" value="18:00">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cihaz Bilgisi -->
+        <div class="card">
+            <div class="card-header">Cihaz Bilgisi</div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Cihaz Markası</label>
+                    <button type="button" class="dropdown-btn" id="markaBtn" onclick="openPopup('marka')">Seçiniz</button>
+                    <input type="hidden" id="cihazMarka">
+                    <div class="error-text" id="error-cihazMarka"></div>
+                </div>
+                <div class="form-group">
+                    <label>Cihaz Türü</label>
+                    <button type="button" class="dropdown-btn" id="turBtn" onclick="openPopup('tur')">Seçiniz</button>
+                    <input type="hidden" id="cihazTuru">
+                    <div class="error-text" id="error-cihazTuru"></div>
+                </div>
+                <div class="form-group">
+                    <label>Cihaz Modeli</label>
+                    <input type="text" id="cihazModeli" placeholder="Model">
+                    <div class="error-text" id="error-cihazModeli"></div>
+                </div>
+                <div class="form-group">
+                    <label>Cihaz Arızası</label>
+                    <input type="text" id="cihazArizasi" placeholder="Arıza açıklaması">
+                    <div class="error-text" id="error-cihazArizasi"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operatör Notu -->
+        <div class="card">
+            <div class="card-header">Operatör Notu</div>
+            <div class="card-body">
+                <input type="text" id="operatorNotu" placeholder="Not">
+            </div>
+        </div>
+
+        <!-- Garanti -->
+        <div class="card">
+            <div class="card-body" style="display:flex;align-items:center;gap:12px">
+                <label style="flex:1;margin:0">Servis Sonrası Sizin Vereceğiniz Garanti</label>
+                <button type="button" class="dropdown-btn" id="garantiBtn" onclick="openPopup('garanti')" style="width:auto;min-width:60px">1</button>
+                <input type="hidden" id="garantiSuresi" value="1">
+                <span style="color:#6b7280">Yıl</span>
+            </div>
+        </div>
+    </form>
+
+    <!-- Bottom Buttons -->
+    <div class="bottom-bar">
+        <button class="btn btn-gray" onclick="goHome()">Vazgeç</button>
+        <button class="btn btn-blue" onclick="kaydet()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+            </svg>
+            Kaydet
+        </button>
+    </div>
+
+    <!-- Popup -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup">
+            <div class="popup-header">
+                <div class="popup-check">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div class="popup-title" id="popupTitle">Seçiniz</div>
+            </div>
+            <div class="popup-body" id="popupBody"></div>
+            <div class="popup-footer">
+                <button class="popup-close" onclick="closePopup()">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Auth check
+        if (!sessionStorage.getItem('karaca_auth')) {
+            window.location.href = 'index.html';
+        }
+
+        // Data
+        const ILLER = ['Adana','Adıyaman','Afyonkarahisar','Ağrı','Amasya','Ankara','Antalya','Artvin','Aydın','Balıkesir','Bilecik','Bingöl','Bitlis','Bolu','Burdur','Bursa','Çanakkale','Çankırı','Çorum','Denizli','Diyarbakır','Edirne','Elazığ','Erzincan','Erzurum','Eskişehir','Gaziantep','Giresun','Gümüşhane','Hakkari','Hatay','Isparta','Mersin','İstanbul','İzmir','Kars','Kastamonu','Kayseri','Kırklareli','Kırşehir','Kocaeli','Konya','Kütahya','Malatya','Manisa','Kahramanmaraş','Mardin','Muğla','Muş','Nevşehir','Niğde','Ordu','Rize','Sakarya','Samsun','Siirt','Sinop','Sivas','Tekirdağ','Tokat','Trabzon','Tunceli','Şanlıurfa','Uşak','Van','Yozgat','Zonguldak','Aksaray','Bayburt','Karaman','Kırıkkale','Batman','Şırnak','Bartın','Ardahan','Iğdır','Yalova','Karabük','Kilis','Osmaniye','Düzce'];
+        const MARKALAR = ['3M','Acarlar','Adnan','AEG','Airfel','Alarko','Alaska','Altus','Ankastre','Arçelik','Arçe','Ariston','Arzum','Asil','Aston','Astor','Astral','Atas','Atmaca','AWOX','Babe','Bambino','Beko','Belling','Best','Beyaz','Black&Decker','Blomberg','Blue House','Bompani','Bosch','Buderus','Buhara','Candy','Canon','Carrefour','Crown','Çelik','Daewoo','Daikin','Daylux','DeLonghi','Demirdöküm','Derby','Dijitsu','Dyson','Electrolux','Empera','Eurosonic','Faber','Fakir','Falim','Fanco','Ferroli','Fer','Ferre','Finlux','Fisher','Franke','Fratello','Fujitsu','Gaggenau','General Electric','Gorenje','Grundig','Hampton','Hansa','Heather','Hoover','Hotpoint','Indesit','Karcher','Kelvinator','Korkmaz','Kumtel','Küty','Lamona','LG','Mabe','Magic','Mekappa','Miele','Mitsubishi','Mora','Neptune','Nikai','Olympus','Panasonic','Philips','Premier','Profilo','Regal','Rowenta','Saba','Samsung','Sanyo','Schaub Lorenz','Seg','Sekom','Sharp','Siemens','Silverline','Sinbo','Singer','Sunny','Super General','Tefal','Termikel','Toshiba','Tristar','Trotec','UFO','Uğur','Universal','Vestel','Viessmann','Waffle','Weewell','Whirlpool','Xiaomi','York','Zanussi','Zennox'];
+        const TURLER = ['Bulaşık Makinesi','Çamaşır Makinesi','Buzdolabı','Derin Dondurucu','Fırın','Ocak','Aspiratör/Davlumbaz','Klima','Kombi','Termosifon','Elektrikli Süpürge','Ütü','Mikrodalga Fırın','Set Üstü Ocak','Ankastre Set','Su Arıtma Cihazı','Bulaşık Makinesi (Ankastre)','Televizyon (TV)','TV Ünitesi','Hood','Ocak (Ankastre)','Fırın (Ankastre)'];
+        const SAATLER = Array.from({length:48},(_,i)=>{const h=Math.floor(i/2).toString().padStart(2,'0');const m=i%2===0?'00':'30';return`${h}:${m}`});
+        const GARANTILER = ['1','2','3'];
+
+        // Set current date/time
+        const now = new Date();
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('tr-TR');
+        document.getElementById('currentTime').textContent = now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+        document.getElementById('currentTime2').textContent = now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+        document.getElementById('musaitTarih').value = now.toISOString().split('T')[0];
+
+        let currentPopup = '';
+
+        function openPopup(type) {
+            currentPopup = type;
+            const popup = document.getElementById('popup');
+            const title = document.getElementById('popupTitle');
+            const body = document.getElementById('popupBody');
+            
+            let items = [];
+            let currentValue = '';
+            
+            switch(type) {
+                case 'il':
+                    title.textContent = 'İl Seçiniz';
+                    items = ILLER;
+                    currentValue = document.getElementById('il').value;
+                    break;
+                case 'marka':
+                    title.textContent = 'Marka Seçiniz';
+                    items = MARKALAR;
+                    currentValue = document.getElementById('cihazMarka').value;
+                    break;
+                case 'tur':
+                    title.textContent = 'Cihaz Türü Seçiniz';
+                    items = TURLER;
+                    currentValue = document.getElementById('cihazTuru').value;
+                    break;
+                case 'baslangic':
+                    title.textContent = 'Başlangıç Saati';
+                    items = SAATLER;
+                    currentValue = document.getElementById('musaitBaslangic').value;
+                    break;
+                case 'bitis':
+                    title.textContent = 'Bitiş Saati';
+                    items = SAATLER;
+                    currentValue = document.getElementById('musaitBitis').value;
+                    break;
+                case 'garanti':
+                    title.textContent = 'Garanti Süresi';
+                    items = GARANTILER;
+                    currentValue = document.getElementById('garantiSuresi').value;
+                    break;
+            }
+            
+            body.innerHTML = items.map(item => 
+                `<div class="popup-item ${item === currentValue ? 'selected' : ''}" onclick="selectItem('${item}')">${item}</div>`
+            ).join('');
+            
+            popup.classList.add('show');
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('show');
+        }
+
+        function selectItem(value) {
+            switch(currentPopup) {
+                case 'il':
+                    document.getElementById('il').value = value;
+                    document.getElementById('ilBtn').textContent = value;
+                    break;
+                case 'marka':
+                    document.getElementById('cihazMarka').value = value;
+                    document.getElementById('markaBtn').textContent = value;
+                    break;
+                case 'tur':
+                    document.getElementById('cihazTuru').value = value;
+                    document.getElementById('turBtn').textContent = value;
+                    break;
+                case 'baslangic':
+                    document.getElementById('musaitBaslangic').value = value;
+                    document.getElementById('baslangicBtn').textContent = value;
+                    break;
+                case 'bitis':
+                    document.getElementById('musaitBitis').value = value;
+                    document.getElementById('bitisBtn').textContent = value;
+                    break;
+                case 'garanti':
+                    document.getElementById('garantiSuresi').value = value;
+                    document.getElementById('garantiBtn').textContent = value;
+                    break;
+            }
+            closePopup();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function validate() {
+            let valid = true;
+            const fields = [
+                {id:'musteriAdi',msg:'Müşteri adı giriniz'},
+                {id:'telefon1',msg:'Telefon giriniz'},
+                {id:'il',msg:'İl seçiniz'},
+                {id:'adres',msg:'Adres giriniz'},
+                {id:'cihazMarka',msg:'Marka seçiniz'},
+                {id:'cihazTuru',msg:'Cihaz türü seçiniz'},
+                {id:'cihazModeli',msg:'Model giriniz'},
+                {id:'cihazArizasi',msg:'Arıza açıklaması giriniz'}
+            ];
+            
+            fields.forEach(f => {
+                const el = document.getElementById(f.id);
+                const err = document.getElementById('error-'+f.id);
+                if (!el.value.trim()) {
+                    el.classList.add('error-input');
+                    if(err) err.textContent = f.msg;
+                    valid = false;
+                } else {
+                    el.classList.remove('error-input');
+                    if(err) err.textContent = '';
+                }
+            });
+            
+            return valid;
+        }
+
+        function kaydet() {
+            if (!validate()) return;
+            
+            const servisNo = parseInt(localStorage.getItem('karaca_son_servis_no') || '253000') + 1;
+            localStorage.setItem('karaca_son_servis_no', servisNo.toString());
+            
+            const kayitTarihi = new Date().toISOString();
+            const garantiYil = parseInt(document.getElementById('garantiSuresi').value);
+            const garantiBitis = new Date(kayitTarihi);
+            garantiBitis.setFullYear(garantiBitis.getFullYear() + garantiYil);
+            
+            const yeniServis = {
+                id: 'servis_'+Date.now(),
+                servisNo: servisNo,
+                kayitTarihi: kayitTarihi,
+                servisKaynagi: '0531 565 0635',
+                operator: 'Çağrı Merkezi',
+                musteri: {
+                    ad: document.getElementById('musteriAdi').value,
+                    telefon1: document.getElementById('telefon1').value,
+                    telefon2: document.getElementById('telefon2').value,
+                    il: document.getElementById('il').value,
+                    ilce: document.getElementById('ilce').value,
+                    adres: document.getElementById('adres').value,
+                    kimlikNo: document.getElementById('kimlikNo').value,
+                    musteriTipi: document.getElementById('musteriTipi').value,
+                    musaitOlmaZamani: {
+                        tarih: document.getElementById('musaitTarih').value,
+                        baslangic: document.getElementById('musaitBaslangic').value,
+                        bitis: document.getElementById('musaitBitis').value
+                    }
+                },
+                cihaz: {
+                    marka: document.getElementById('cihazMarka').value,
+                    tur: document.getElementById('cihazTuru').value,
+                    model: document.getElementById('cihazModeli').value,
+                    ariza: document.getElementById('cihazArizasi').value,
+                    garantiBitis: garantiBitis.toISOString().split('T')[0]
+                },
+                operatorNotu: document.getElementById('operatorNotu').value,
+                garantiSuresi: garantiYil,
+                durum: 'Teknisyen Yönlendir',
+                teknisyen: null,
+                islemler: [{
+                    id: 'islem_'+Date.now(),
+                    tarih: kayitTarihi,
+                    islemiYapan: 'Çağrı Merkezi',
+                    islemAdi: 'Teknisyen Yönlendir',
+                    aciklama: 'Teknisyen : Henüz atanmadı\nGidiş Tarihi : ' + new Date(document.getElementById('musaitTarih').value).toLocaleDateString('tr-TR')
+                }],
+                paraHareketleri: [],
+                arizaTespiti: '',
+                yapilanIslemler: '',
+                kullanilanParca: '',
+                toplamTutar: 0,
+                musteriImza: '',
+                teknisyenImza: ''
+            };
+            
+            const servisler = JSON.parse(localStorage.getItem('karaca_servisler') || '[]');
+            servisler.push(yeniServis);
+            localStorage.setItem('karaca_servisler', JSON.stringify(servisler));
+            sessionStorage.setItem('current_servis', JSON.stringify(yeniServis));
+            
+            showToast('Servis #' + servisNo + ' oluşturuldu');
+            
+            setTimeout(() => {
+                window.location.href = 'teknisyen-yonlendir.html';
+            }, 1000);
+        }
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Close popup on backdrop click
+        document.getElementById('popup').addEventListener('click', function(e) {
+            if (e.target === this) closePopup();
+        });
+    </script>
+</body>
+</html>

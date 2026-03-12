@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KARACA - Giriş</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom, #2563eb, #1e40af);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .logo svg {
+            width: 40px;
+            height: 40px;
+            color: #2563eb;
+        }
+        h1 {
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+        }
+        .login-form {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .form-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+        }
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .error.show { display: block; }
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button[type="submit"]:hover {
+            background: #1d4ed8;
+        }
+        button[type="submit"]:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+        .copyright {
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <div class="logo">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+        </div>
+        <h1>KARACA</h1>
+        <p class="subtitle">Teknik Servis Yönetim Sistemi</p>
+    </div>
+
+    <form class="login-form" id="loginForm">
+        <h2 class="form-title">Giriş Yap</h2>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Şifre" required>
+            <button type="button" class="toggle-password" onclick="togglePassword()">
+                <svg id="eyeIcon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <button type="submit" id="submitBtn">Giriş Yap</button>
+    </form>
+
+    <p class="copyright">© 2024 KARACA Servis Sistemi</p>
+
+    <script>
+        // LocalStorage keys
+        const STORAGE_KEY = 'karaca_servisler';
+        const SERVIS_NO_KEY = 'karaca_son_servis_no';
+        
+        // Başlangıç verileri oluştur
+        if (!localStorage.getItem(STORAGE_KEY)) {
+            localStorage.setItem(STORAGE_KEY, '[]');
+        }
+        if (!localStorage.getItem(SERVIS_NO_KEY)) {
+            localStorage.setItem(SERVIS_NO_KEY, '253000');
+        }
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Giriş yapılıyor...';
+            
+            setTimeout(() => {
+                if (password === 'canonlayn') {
+                    sessionStorage.setItem('karaca_auth', 'true');
+                    window.location.href = 'ana-sayfa.html';
+                } else {
+                    errorDiv.textContent = 'Hatalı şifre!';
+                    errorDiv.classList.add('show');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Giriş Yap';
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KARACA CHEAT - AI Arıza Asistanı</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #fbbf24;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.03) 10px,
+                rgba(255,255,255,0.03) 20px
+            );
+            animation: scan 20s linear infinite;
+        }
+        @keyframes scan {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(59,130,246,0.8);
+            position: relative;
+        }
+        .header p {
+            font-size: 14px;
+            color: #fbbf24;
+            margin-top: 5px;
+            position: relative;
+        }
+        .ai-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+        }
+        
+        /* Container */
+        .container {
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Search Card */
+        .search-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .search-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Input Grid */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            position: relative;
+        }
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            background: #f9fafb;
+            transition: all 0.3s;
+        }
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
+        }
+        
+        /* Search Button */
+        .search-btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 30px rgba(59,130,246,0.5);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(59,130,246,0.6);
+        }
+        .search-btn:active {
+            transform: translateY(0);
+        }
+        .search-btn.loading {
+            opacity: 0.8;
+            cursor: wait;
+        }
+        
+        /* Results Card */
+        .results-card {
+            background: rgba(255,255,255,0.98);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            display: none;
+        }
+        .results-card.show {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .results-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .device-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .device-info h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        .device-info p {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        
+        /* Error Code Card */
+        .error-card {
+            background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
+            border: 2px solid #fecaca;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+        .error-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 10px 30px rgba(239,68,68,0.15);
+        }
+        .error-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .error-code {
+            background: #dc2626;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        .error-severity {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .severity-high { background: #fecaca; color: #991b1b; }
+        .severity-medium { background: #fde68a; color: #92400e; }
+        .severity-low { background: #bbf7d0; color: #166534; }
+        
+        .error-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        .error-desc {
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        
+        /* Solution Box */
+        .solution-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border: 2px solid #6ee7b7;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .solution-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #059669;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .solution-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .solution-list li {
+            padding: 6px 0;
+            font-size: 13px;
+            color: #374151;
+            border-bottom: 1px dashed #d1d5db;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .solution-list li:last-child {
+            border-bottom: none;
+        }
+        .solution-list li::before {
+            content: '✓';
+            color: #10b981;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        /* Stats */
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background: #f3f4f6;
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e40af;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        
+        /* Loading Animation */
+        .loading-container {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        .loading-container.show {
+            display: block;
+        }
+        .ai-thinking {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 16px;
+            color: #4b5563;
+            font-weight: 500;
+        }
+        .loading-text::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        .no-results svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.98);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: #9ca3af;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            color: #3b82f6;
+        }
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #1e40af;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 200;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>KARACA CHEAT <span class="ai-badge">AI BOT</span></h1>
+        <p>Akıllı Arıza Tespit ve Çözüm Asistanı</p>
+    </div>
+    
+    <div class="container">
+        <!-- Search Card -->
+        <div class="search-card">
+            <div class="search-title">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                Cihaz Bilgilerini Girin
+            </div>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Cihaz Markası</label>
+                    <input type="text" id="marka" placeholder="Örn: Arçelik, Beko, Bosch, Samsung, LG, Daikin, Vaillant...">
+                </div>
+                
+                <div class="input-group">
+                    <label>Cihaz Türü</label>
+                    <input type="text" id="tur" placeholder="Örn: Çamaşır Makinesi, Kombi, Klima, Buzdolabı...">
+                </div>
+                
+                <div class="input-group">
+                    <label>Model No</label>
+                    <input type="text" id="model" placeholder="Örn: CM 10124, F6104, KFR-35">
+                </div>
+                
+                <div class="input-group">
+                    <label>Arıza Kodu (Opsiyonel)</label>
+                    <input type="text" id="arizaKodu" placeholder="Örn: E01, F01, H1">
+                </div>
+            </div>
+            
+            <button class="search-btn" id="searchBtn" onclick="analizEt()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                AI ile Analiz Et
+            </button>
+        </div>
+        
+        <!-- Loading -->
+        <div class="loading-container" id="loadingContainer">
+            <div class="ai-thinking"></div>
+            <p class="loading-text">Yapay zeka analiz ediyor</p>
+        </div>
+        
+        <!-- Results Card -->
+        <div class="results-card" id="resultsCard">
+            <div class="results-header">
+                <div class="device-icon">
+                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div class="device-info">
+                    <h2 id="resultMarka">-</h2>
+                    <p id="resultModel">-</p>
+                </div>
+            </div>
+            
+            <div class="stats-bar" id="statsBar">
+                <div class="stat-item">
+                    <div class="stat-value" id="statKod">0</div>
+                    <div class="stat-label">Arıza Kodu</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statYuksek">0</div>
+                    <div class="stat-label">Yüksek Risk</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statOrta">0</div>
+                    <div class="stat-label">Orta Risk</div>
+                </div>
+            </div>
+            
+            <div id="errorList">
+                <!-- Error cards will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <a href="ana-sayfa.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Ana Sayfa
+        </a>
+        <a href="karaca-yuzdelik.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Hesapla
+        </a>
+        <a href="karacacheat.html" class="nav-item" style="color:#3b82f6">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+            AI
+        </a>
+        <a href="karaca-muhasebe.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Muhasebe
+        </a>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // Arıza kodları veritabanı
+        const ARIZA_KODLARI = {
+            // Çamaşır Makineleri
+            camasir: {
+                arcelik: {
+                    'E01': { title: 'Kapı Kilidi Arızası', severity: 'high', desc: 'Kapı kilit mekanizması düzgün çalışmıyor veya kapı tam kapanmıyor.', solutions: ['Kapının tam kapanıp kapanmadığını kontrol edin', 'Kapı kilidi mekanizmasını temizleyin', 'Kilidin elektrik bağlantılarını kontrol edin', 'Gerekirse kapı kilidi şalterini değiştirin'] },
+                    'E02': { title: 'Su Alım Arızası', severity: 'medium', desc: 'Makine su alamıyor veya su basıncı yetersiz.', solutions: ['Musluk vanasının açık olduğundan emin olun', 'Su giriş hortumunu kontrol edin', 'Su filtresini temizleyin', 'Su basıncını kontrol edin (0.5-10 bar arası olmalı)'] },
+                    'E03': { title: 'Su Boşaltma Arızası', severity: 'medium', desc: 'Makine suyu boşaltamıyor.', solutions: ['Boşaltma hortumunu kontrol edin', 'Pompa filtresini temizleyin', 'Boşaltma pompasını kontrol edin', 'Hortumun bükülmediğinden emin olun'] },
+                    'E04': { title: 'Motor Arızası', severity: 'high', desc: 'Motor devreye girmiyor veya aşırı ısınıyor.', solutions: ['Karbon fırçaları kontrol edin', 'Motor termik sigortasını kontrol edin', 'Motor kablo bağlantılarını kontrol edin', 'Gerekirse motoru değiştirin'] },
+                    'E05': { title: 'Sıcaklık Sensörü Arızası', severity: 'medium', desc: 'NTC sensörü hatalı sıcaklık değeri okuyor.', solutions: ['Sıcaklık sensörü bağlantılarını kontrol edin', 'Sensör direncini ölçün (20-30 kΩ olmalı)', 'Sensör kablosunu kontrol edin', 'Gerekirse sensörü değiştirin'] },
+                    'E06': { title: 'Su Seviye Arızası', severity: 'medium', desc: 'Su seviye basınç şalteri hatalı değer veriyor.', solutions: ['Basınç şalteri hortumunu kontrol edin', 'Şalterin tıkanık olmadığından emin olun', 'Şalter bağlantılarını kontrol edin', 'Gerekirse basınç şalterini değiştirin'] },
+                    'E07': { title: 'Aşırı Köpük Arızası', severity: 'low', desc: 'Makinede aşırı köpük oluşumu tespit edildi.', solutions: ['Deterjan miktarını azaltın', 'Deterjan gözünü temizleyin', 'Programı durdurun ve tekrar başlatın', 'Doğru deterjan kullandığınızdan emin olun'] },
+                    'E08': { title: 'Dengesiz Yük', severity: 'low', desc: 'Çamaşırlar dengesiz dağılmış durumda.', solutions: ['Çamaşırları yeniden düzenleyin', 'Makinayı boşaltıp tekrar doldurun', 'Yükü dengeli dağıtın', 'Programı yeniden başlatın'] },
+                    'E09': { title: 'Elektronik Kart Arızası', severity: 'high', desc: 'Ana kontrol kartında yazılım veya donanım hatası.', solutions: ['Kart üzerinde yanmış komponent kontrolü', 'EEPROM çipini kontrol edin', 'Kart bağlantılarını yeniden takın', 'Gerekirse kartı değiştirin'] },
+                    'E10': { title: 'İletişim Arızası', severity: 'medium', desc: 'Ekran kartı ile ana kart arasında iletişim kopukluğu.', solutions: ['İletişim kablolarını kontrol edin', 'Konektörleri yeniden takın', 'Ekran kartını kontrol edin', 'Ana kart iletişim portunu kontrol edin'] },
+                    'E11': { title: 'Motor Tacho Arızası', severity: 'high', desc: 'Motor hız sensörü (tacho) hatalı sinyal veriyor.', solutions: ['Tacho sensör bağlantılarını kontrol edin', 'Sensör ile motor arası mesafeyi kontrol edin', 'Sensör direncini ölçün', 'Gerekirse tacho sensörünü değiştirin'] },
+                    'E12': { title: 'Su Isıtıcı Arızası', severity: 'medium', desc: 'Rezistans (ısıtıcı) çalışmıyor veya açık devre.', solutions: ['Rezistans direncini ölçün (20-40 Ω olmalı)', 'Rezistans bağlantılarını kontrol edin', 'Termik sigortayı kontrol edin', 'Gerekirse rezistansı değiştirin'] },
+                    'E13': { title: 'Fan Motoru Arızası', severity: 'medium', desc: 'Kurutma fan motoru devreye girmiyor.', solutions: ['Fan motoru bağlantılarını kontrol edin', 'Motor sargı direncini ölçün', 'Fan kanatlarının takılı olmadığından emin olun', 'Gerekirse fan motorunu değiştirin'] },
+                    'E14': { title: 'Kondenser Sensör Arızası', severity: 'medium', desc: 'Kurutma kondenser sensörü hatalı değer veriyor.', solutions: ['Sensör bağlantılarını kontrol edin', 'Sensör direncini ölçün', 'Kondenser tıkanıklığını kontrol edin', 'Gerekirse sensörü değiştirin'] },
+                    'E15': { title: 'Yük Algılama Arızası', severity: 'low', desc: 'Makine yük miktarını doğru algılayamıyor.', solutions: ['Motor tacho sensörünü kontrol edin', 'Yükü yeniden dağıtın', 'Makinayı boş çalıştırın test amaçlı', 'Sensör kalibrasyonunu kontrol edin'] },
+                    'E16': { title: 'Su Baskısı Arızası', severity: 'high', desc: 'Makinada su baskısı (taşma) tespit edildi.', solutions: ['Makineyi hemen durdurun', 'Su vanasını kapatın', 'Boşaltma sistemini kontrol edin', 'Su seviye şalterini kontrol edin'] },
+                    'E17': { title: 'Soğutma Vanası Arızası', severity: 'medium', desc: 'Kurutma soğutma vanası çalışmıyor.', solutions: ['Vana bobinini kontrol edin', 'Vana mekanizmasını kontrol edin', 'Vana elektrik bağlantılarını kontrol edin', 'Gerekirse vanayı değiştirin'] },
+                    'E18': { title: 'Kurutma NTC Arızası', severity: 'medium', desc: 'Kurutma sıcaklık sensörü arızalı.', solutions: ['NTC sensör bağlantılarını kontrol edin', 'Sensör direncini ölçün', 'Sensörün doğru yerleştiğinden emin olun', 'Gerekirse sensörü değiştirin'] },
+                    'E19': { title: 'Gaz Reküperasyon Arızası', severity: 'medium', desc: 'Isı geri kazanım sistemi çalışmıyor.', solutions: ['Reküperasyon vanasını kontrol edin', 'Sistem basıncını kontrol edin', 'Kompresör çalışıyor mu kontrol edin', 'Sistemde gaz kaçağı olup olmadığını kontrol edin'] },
+                    'E20': { title: 'Kompresör Arızası', severity: 'high', desc: 'Kurutma kompresörü devreye girmiyor.', solutions: ['Kompresör start kapasitörünü kontrol edin', 'Kompresör termik sigortasını kontrol edin', 'Kompresör ampere değerini ölçün', 'Gerekirse kompresörü değiştirin'] },
+                },
+                beko: {
+                    'F01': { title: 'Kapı Kilidi Hatası', severity: 'high', desc: 'Kapı kilit mekanizması hatalı sinyal veriyor.', solutions: ['Kapı kilidi çekme anahtarını kontrol edin', 'Kilidin mekanik hareketini kontrol edin', 'Elektrik bağlantılarını kontrol edin', 'Kilidi değiştirin'] },
+                    'F02': { title: 'Su Alım Problemi', severity: 'medium', desc: 'Makine belirlenen sürede su alamadı.', solutions: ['Su musluğunu kontrol edin', 'Su giriş filtresini temizleyin', 'Su basıncını ölçün', 'Basınç şalterini kontrol edin'] },
+                    'F03': { title: 'Boşaltma Problemi', severity: 'medium', desc: 'Su belirlenen sürede boşaltılamadı.', solutions: ['Boşaltma hortumunu kontrol edin', 'Pompa filtresini temizleyin', 'Pompayı kontrol edin', 'Hortum yüksekliğini kontrol edin'] },
+                    'F04': { title: 'Motor Arızası', severity: 'high', desc: 'Motor çalışmıyor veya ters dönüyor.', solutions: ['Karbon fırçaları kontrol edin', 'Motor kablolarını kontrol edin', 'Motor termiğini kontrol edin', 'Motor sargılarını ölçün'] },
+                    'F05': { title: 'NTC Sensör Hatası', severity: 'medium', desc: 'Sıcaklık sensörü açık veya kısa devre.', solutions: ['Sensör bağlantılarını kontrol edin', 'Direnci ölçün (10-30 kΩ)', 'Kablo izolasyonunu kontrol edin', 'Sensörü değiştirin'] },
+                    'F06': { title: 'Su Seviye Hatası', severity: 'medium', desc: 'Su seviye şalteri tutukluk yapıyor.', solutions: ['Şalteri temizleyin', 'Hortum bağlantılarını kontrol edin', 'Şalter mekanizmasını kontrol edin', 'Şalteri değiştirin'] },
+                    'F07': { title: 'Motor Hız Hatası', severity: 'high', desc: 'Motor istenen hıza ulaşamıyor.', solutions: ['Kayışı kontrol edin', 'Kasnağı kontrol edin', 'Yükü azaltın', 'Motoru kontrol edin'] },
+                    'F08': { title: 'Isıtıcı Arızası', severity: 'medium', desc: 'Rezistans çalışmıyor.', solutions: ['Rezistans direncini ölçün', 'Sigortayı kontrol edin', 'Termik sigortayı kontrol edin', 'Rezistansı değiştirin'] },
+                    'F09': { title: 'İletişim Hatası', severity: 'medium', desc: 'Ekran ile ana kart iletişiminde sorun.', solutions: ['İletişim kablolarını kontrol edin', 'Konektörleri temizleyin', 'Ekran kartını kontrol edin', 'Ana kartı kontrol edin'] },
+                    'F10': { title: 'Aşırı Köpük', severity: 'low', desc: 'Fazla deterjan köpüğü tespit edildi.', solutions: ['Az deterjan kullanın', 'Köpük sensörünü temizleyin', 'Programı durdurup tekrar başlatın', 'Deterjan gözünü temizleyin'] },
+                    'F11': { title: 'Dengesiz Yük', severity: 'low', desc: 'Santrifüjde aşırı titreşim tespit edildi.', solutions: ['Çamaşırları yeniden dağıtın', 'Makinayı boşaltın', 'Şok emici ayakları kontrol edin', 'Yükü azaltın'] },
+                    'F12': { title: 'Yük Algılama Hatası', severity: 'low', desc: 'Yük miktarı algılanamıyor.', solutions: ['Motor hız sensörünü kontrol edin', 'Programı resetleyin', 'Yükü yeniden dağıtın', 'Sensör kalibrasyonu yapın'] },
+                    'F13': { title: 'Kurutma Hatası', severity: 'medium', desc: 'Kurutma işlemi tamamlanamadı.', solutions: ['Kondenseri temizleyin', 'Fan motorunu kontrol edin', 'Nem sensörünü kontrol edin', 'Hava akışını kontrol edin'] },
+                    'F14': { title: 'Su Baskını', severity: 'high', desc: 'AquaStop devreye girdi.', solutions: ['Ana vanayı kapatın', 'Makineyi boşaltın', 'AquaStop mekanizmasını kontrol edin', 'Servisi arayın'] },
+                    'F15': { title: 'Kazan Dönme Hatası', severity: 'medium', desc: 'Kazan dönme hareketi engelleniyor.', solutions: ['Kazanın serbest dönüşünü kontrol edin', 'Kayışı kontrol edin', 'Rulmanları kontrol edin', 'Motor şaftını kontrol edin'] },
+                },
+            },
+            // Bulaşık Makineleri
+            bulasik: {
+                arcelik: {
+                    'E01': { title: 'Su Alım Arızası', severity: 'medium', desc: 'Makine yeterli su alamıyor.', solutions: ['Su musluğunu kontrol edin', 'Su giriş filtresini temizleyin', 'Su basıncını kontrol edin', 'Basınç şalterini kontrol edin'] },
+                    'E02': { title: 'Su Boşaltma Arızası', severity: 'medium', desc: 'Su boşaltılamıyor.', solutions: ['Filtreyi temizleyin', 'Boşaltma pompasını kontrol edin', 'Hortumu kontrol edin', 'Sifon bağlantısını kontrol edin'] },
+                    'E03': { title: 'Isıtıcı Arızası', severity: 'medium', desc: 'Su ısıtıcı çalışmıyor.', solutions: ['Rezistans direncini ölçün', 'Termik sigortayı kontrol edin', 'Rezistans bağlantılarını kontrol edin', 'Rezistansı değiştirin'] },
+                    'E04': { title: 'Sıcaklık Sensörü Arızası', severity: 'medium', desc: 'NTC sensörü hatalı okuma yapıyor.', solutions: ['Sensör bağlantılarını kontrol edin', 'Sensör direncini ölçün', 'Sensörü değiştirin'] },
+                    'E05': { title: 'Taşma Koruması', severity: 'high', desc: 'Su taşması tespit edildi.', solutions: ['Makineyi durdurun', 'Vanayı kapatın', 'Şamandırayı kontrol edin', 'Boya şalterini kontrol edin'] },
+                    'E06': { title: 'Motor Arızası', severity: 'high', desc: 'Yıkama motoru çalışmıyor.', solutions: ['Motor kapasitörünü kontrol edin', 'Motor sargılarını ölçün', 'Motor bağlantılarını kontrol edin', 'Motoru değiştirin'] },
+                    'E07': { title: 'Kapı Kilidi Arızası', severity: 'high', desc: 'Kapı kilit mekanizması hatalı.', solutions: ['Kilidi temizleyin', 'Kilit bobinini ölçün', 'Mekanik hareketi kontrol edin', 'Kilidi değiştirin'] },
+                    'E08': { title: 'Tuz Tankı Arızası', severity: 'low', desc: 'Tuz tankı sensörü hatalı.', solutions: ['Tuz tankını temizleyin', 'Kapak contasını kontrol edin', 'Sensörü kontrol edin', 'Tuz doldurun'] },
+                    'E09': { title: 'Parlatıcı Arızası', severity: 'low', desc: 'Parlatıcı seviyesi düşük veya sensör hatalı.', solutions: ['Parlatıcı doldurun', 'Sensörü temizleyin', 'Kapağı kontrol edin'] },
+                    'E10': { title: 'Su Sertliği Arızası', severity: 'low', desc: 'Su sertliği sensörü hatalı.', solutions: ['Sensörü temizleyin', 'Su sertliğini kontrol edin', 'Tuz ayarını yapın', 'Sensörü değiştirin'] },
+                    'E11': { title: 'Kart Arızası', severity: 'high', desc: 'Ana elektronik kart hatası.', solutions: ['Kart bağlantılarını kontrol edin', 'EEPROM\'u kontrol edin', 'Yanmış komponent var mı kontrol edin', 'Kartı değiştirin'] },
+                    'E12': { title: 'İletişim Arızası', severity: 'medium', desc: 'Ekran kartı ile ana kart arasında iletişim kopukluğu.', solutions: ['Veri kablosunu kontrol edin', 'Konektörleri temizleyin', 'Ekran kartını kontrol edin'] },
+                },
+                beko: {
+                    'F01': { title: 'Su Alım Hatası', severity: 'medium', desc: 'Yeterli su basıncı yok.', solutions: ['Musluğu kontrol edin', 'Filtreyi temizleyin', 'Basıncı ölçün', 'Şalteri kontrol edin'] },
+                    'F02': { title: 'Boşaltma Hatası', severity: 'medium', desc: 'Su boşaltılamıyor.', solutions: ['Filtreyi temizleyin', 'Pompayı kontrol edin', 'Hortumu kontrol edin', 'Sifonu kontrol edin'] },
+                    'F03': { title: 'Isıtıcı Hatası', severity: 'medium', desc: 'Rezistans arızalı.', solutions: ['Direnci ölçün', 'Sigortayı kontrol edin', 'Bağlantıları kontrol edin', 'Rezistansı değiştirin'] },
+                    'F04': { title: 'Sıcaklık Sensörü', severity: 'medium', desc: 'NTC hatalı.', solutions: ['Bağlantıları kontrol edin', 'Direnci ölçün', 'Sensörü değiştirin'] },
+                    'F05': { title: 'Taşma Koruması', severity: 'high', desc: 'Su taşması algılandı.', solutions: ['Durdurun', 'Boşaltın', 'Şamandırayı kontrol edin', 'Servisi arayın'] },
+                    'F06': { title: 'Motor Hatası', severity: 'high', desc: 'Yıkama motoru çalışmıyor.', solutions: ['Kapasitörü kontrol edin', 'Sargıları ölçün', 'Bağlantıları kontrol edin', 'Motoru değiştirin'] },
+                    'F07': { title: 'Kapı Kilidi', severity: 'high', desc: 'Kapı kilidi hatalı.', solutions: ['Temizleyin', 'Bobini ölçün', 'Mekaniği kontrol edin', 'Değiştirin'] },
+                },
+            },
+            // Kombiler
+            kombi: {
+                demirdokum: {
+                    'F01': { title: 'Ateşleme Arızası', severity: 'high', desc: 'Brülör ateşlenemiyor.', solutions: ['Gaz vanasını kontrol edin', 'Ateşleme elektrodunu temizleyin', 'Ateşleme kablosunu kontrol edin', 'İyonizasyon probunu temizleyin', 'Gaz basıncını kontrol edin'] },
+                    'F02': { title: 'Sıcak Su Sensörü', severity: 'medium', desc: 'Sıcak su NTC sensörü hatalı.', solutions: ['Sensör direncini ölçün (10-12 kΩ)', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F03': { title: 'Kalorifer Sensörü', severity: 'medium', desc: 'Kalorifer NTC sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F04': { title: 'Aşırı Isınma', severity: 'high', desc: 'Güvenlik termostatı devreye girdi.', solutions: ['Pompanın çalıştığını kontrol edin', 'Sistemin havasını alın', 'Genleşme tankını kontrol edin', 'By-pass\'i kontrol edin', 'Termostatı resetleyin'] },
+                    'F05': { title: 'Su Basıncı Düşük', severity: 'medium', desc: 'Sistem basıncı 0.5 bar altında.', solutions: ['Basınç göstergesini kontrol edin', 'Su doldurma vanasından su ekleyin', 'Sistemde kaçak olup olmadığını kontrol edin', 'Basınç şalterini kontrol edin'] },
+                    'F06': { title: 'Su Basıncı Yüksek', severity: 'medium', desc: 'Sistem basıncı 3 bar üzerinde.', solutions: ['Basınç göstergesini kontrol edin', 'Genleşme tankı basıncını kontrol edin (1 bar)', 'Güvenlik valfini kontrol edin', 'Fazla suyu boşaltın'] },
+                    'F07': { title: 'Pompa Arızası', severity: 'high', desc: 'Sirkülasyon pompası çalışmıyor.', solutions: ['Pompa bağlantılarını kontrol edin', 'Pompa kapasitörünü kontrol edin', 'Pompa pervanesini kontrol edin', 'Hava katanını kontrol edin', 'Pompayı değiştirin'] },
+                    'F08': { title: 'Dış Hava Sensörü', severity: 'low', desc: 'Dış hava sensörü hatalı veya bağlı değil.', solutions: ['Sensör bağlantılarını kontrol edin', 'Sensör direncini ölçün', 'Sensörü değiştirin'] },
+                    'F09': { title: 'Baca Gazı Sensörü', severity: 'high', desc: 'Baca gazı sensörü hatalı.', solutions: ['Sensörü temizleyin', 'Bağlantıları kontrol edin', 'Baca çekişini kontrol edin', 'Sensörü değiştirin'] },
+                    'F10': { title: 'Fan Arızası', severity: 'high', desc: 'Fan motoru çalışmıyor.', solutions: ['Fan bağlantılarını kontrol edin', 'Fan kapasitörünü kontrol edin', 'Fan pervanesini kontrol edin', 'Fan motorunu değiştirin'] },
+                    'F11': { title: 'Gaz Vana Arızası', severity: 'high', desc: 'Gaz valfı açılmıyor.', solutions: ['Vana bobinini kontrol edin', 'Gaz basıncını kontrol edin', 'Kart çıkışını kontrol edin', 'Valfı değiştirin'] },
+                    'F12': { title: 'Modülasyon Arızası', severity: 'medium', desc: 'Gaz valfı modülasyonu hatalı.', solutions: ['Valf bağlantılarını kontrol edin', 'Kart çıkış voltajını ölçün', 'Valfı değiştirin'] },
+                    'F13': { title: 'EEPROM Hatası', severity: 'high', desc: 'Hafıza çipi hatalı.', solutions: ['Kart üzerindeki EEPROM\'u kontrol edin', 'Yazılımı yenileyin', 'Kartı değiştirin'] },
+                    'F14': { title: 'Saat Ayarı Hatası', severity: 'low', desc: 'Kombi saati hatalı.', solutions: ['Saati düzeltin', 'Pil bitmişse değiştirin', 'Kartı kontrol edin'] },
+                    'F15': { title: 'Düşük Basınç Şalteri', severity: 'medium', desc: 'Basınç şalteri devreye girdi.', solutions: ['Suya basınç ekleyin', 'Kaçak kontrolü yapın', 'Şalteri kontrol edin'] },
+                    'F16': { title: 'Yangın Koruması', severity: 'high', desc: 'Yangın sensörü devreye girdi.', solutions: ['Kombiyi kapatın', 'Servisi arayın', 'Sensörü kontrol edin'] },
+                    'F17': { title: 'Su Seviye Şalteri', severity: 'medium', desc: 'Su seviye şalteri hatalı.', solutions: ['Şalteri temizleyin', 'Bağlantıları kontrol edin', 'Şalteri değiştirin'] },
+                    'F18': { title: 'Gaz Basınç Düşük', severity: 'high', desc: 'Gaz basıncı yetersiz.', solutions: ['Gaz vanasını kontrol edin', 'Gaz saatini kontrol edin', 'Gaz firmasını arayın', 'Regülatörü kontrol edin'] },
+                    'F19': { title: 'Gaz Basınç Yüksek', severity: 'high', desc: 'Gaz basıncı çok yüksek.', solutions: ['Gaz vanasını kapatın', 'Regülatörü kontrol edin', 'Gaz firmasını arayın'] },
+                    'F20': { title: 'Hava Probu', severity: 'medium', desc: 'Hava akış probu hatalı.', solutions: ['Probu temizleyin', 'Bağlantıları kontrol edin', 'Probu değiştirin'] },
+                },
+                vaillant: {
+                    'F.0': { title: 'Ateşleme Hatası', severity: 'high', desc: 'Brülör ateşlenemedi.', solutions: ['Ateşleme elektrodunu kontrol edin', 'İyonizasyonu kontrol edin', 'Gaz basıncını kontrol edin', 'Kartı kontrol edin'] },
+                    'F.1': { title: 'Aşırı Isınma', severity: 'high', desc: 'Güvenlik termostatı devreye girdi.', solutions: ['Pompayı kontrol edin', 'Hava alma işlemi yapın', 'Genleşme tankını kontrol edin', 'Termostatı resetleyin'] },
+                    'F.10': { title: 'Pompa Arızası', severity: 'high', desc: 'Sirkülasyon pompası arızalı.', solutions: ['Pompayı kontrol edin', 'Kapasitörü kontrol edin', 'Hava purjesi yapın', 'Pompayı değiştirin'] },
+                    'F.20': { title: 'Sıcak Su Sensörü', severity: 'medium', desc: 'Sıcak su sensörü hatalı.', solutions: ['NTC direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F.22': { title: 'Kalorifer Sensörü', severity: 'medium', desc: 'Kalorifer sensörü hatalı.', solutions: ['NTC direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F.24': { title: 'Düşük Basınç', severity: 'medium', desc: 'Sistem basıncı düşük.', solutions: ['Suyu tamamlayın', 'Kaçak kontrolü yapın', 'Şalteri kontrol edin'] },
+                    'F.28': { title: 'Gaz Valfı', severity: 'high', desc: 'Gaz valfı arızalı.', solutions: ['Bobini kontrol edin', 'Basıncı kontrol edin', 'Valfı değiştirin'] },
+                    'F.29': { title: 'Fan Hatası', severity: 'high', desc: 'Fan çalışmıyor.', solutions: ['Fan bağlantılarını kontrol edin', 'Kapasitörü kontrol edin', 'Fan motorunu değiştirin'] },
+                    'F.32': { title: 'Hava Akışı', severity: 'high', desc: 'Hava akışı yetersiz.', solutions: ['Bacayı kontrol edin', 'Fan çalışıyor mu kontrol edin', 'Hava akış sensörünü kontrol edin'] },
+                    'F.37': { title: 'Dış Hava Sensörü', severity: 'low', desc: 'Dış hava sensörü arızalı.', solutions: ['Sensörü kontrol edin', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F.49': { title: 'EEPROM Hatası', severity: 'high', desc: 'Kart hafızası hatalı.', solutions: ['Kartı resetleyin', 'Yazılımı yenileyin', 'Kartı değiştirin'] },
+                    'F.61': { title: 'Su Seviye', severity: 'medium', desc: 'Su seviye şalteri hatalı.', solutions: ['Şalteri kontrol edin', 'Bağlantıları kontrol edin', 'Şalteri değiştirin'] },
+                    'F.62': { title: 'Gaz Grubu', severity: 'high', desc: 'Gaz grubu hatası.', solutions: ['Gaz tipini kontrol edin', 'Valf grubunu kontrol edin', 'Kartı kontrol edin'] },
+                    'F.63': { title: 'Yangın Koruması', severity: 'high', desc: 'Yangın sensörü devreye girdi.', solutions: ['Kombiyi kapatın', 'Servisi arayın'] },
+                    'F.64': { title: 'DHW Sensörü', severity: 'medium', desc: 'Sıcak su sensörü hatası.', solutions: ['NTC\'yi kontrol edin', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F.67': { title: 'Kart İletişimi', severity: 'high', desc: 'Görselleştirme kartı ile ana kart arasında iletişim hatası.', solutions: ['Bağlantıları kontrol edin', 'Kartları resetleyin', 'Kartları değiştirin'] },
+                    'F.70': { title: 'Modülasyon', severity: 'medium', desc: 'Gaz valfı modülasyonu hatalı.', solutions: ['Valfı kontrol edin', 'Kartı kontrol edin', 'Valfı değiştirin'] },
+                    'F.71': { title: 'Su Basıncı Yüksek', severity: 'medium', desc: 'Sistem basıncı çok yüksek.', solutions: ['Basıncı azaltın', 'Genleşme tankını kontrol edin', 'Güvenlik valfini kontrol edin'] },
+                    'F.72': { title: 'Hidrolik Grup', severity: 'medium', desc: 'Hidrolik grup hatası.', solutions: ['By-pass\'i kontrol edin', 'Pompayı kontrol edin', 'Sensörleri kontrol edin'] },
+                    'F.73': { title: 'Hava Probu', severity: 'medium', desc: 'Hava akış probu hatalı.', solutions: ['Probu temizleyin', 'Bağlantıları kontrol edin', 'Probu değiştirin'] },
+                    'F.74': { title: 'Gaz Basınç', severity: 'high', desc: 'Gaz basıncı yetersiz veya yüksek.', solutions: ['Gaz basıncını ölçün', 'Vanayı kontrol edin', 'Regülatörü kontrol edin'] },
+                    'F.75': { title: 'Dış Hava', severity: 'low', desc: 'Dış hava sensörü bağlı değil.', solutions: ['Bağlantıları kontrol edin', 'Sensörü takın', 'Sensörü değiştirin'] },
+                    'F.76': { title: 'Sıcak Su Tankı', severity: 'medium', desc: 'Sıcak su tankı sensörü hatalı.', solutions: ['Sensörü kontrol edin', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F.77': { title: 'Dolaşım', severity: 'high', desc: 'Sistemde dolaşım yok.', solutions: ['Vanaları kontrol edin', 'Pompayı kontrol edin', 'Hava alma işlemi yapın'] },
+                    'F.78': { title: 'Oda Termostatı', severity: 'low', desc: 'Oda termostatı iletişim hatası.', solutions: ['Bağlantıları kontrol edin', 'Termostatı kontrol edin', 'Kablolamayı kontrol edin'] },
+                },
+            },
+            // Klimalar
+            klima: {
+                daikin: {
+                    'U0': { title: 'Refrigerant Eksikliği', severity: 'high', desc: 'Sistemde gaz miktarı yetersiz.', solutions: ['Basınçları kontrol edin', 'Sızıntı kontrolü yapın', 'Gaz doldurun', 'Sızıntı varsa onarın'] },
+                    'U1': { title: 'Ters Faz', severity: 'medium', desc: 'Faz kabloları ters bağlanmış.', solutions: ['Faz sırasını kontrol edin', 'Ters bağlı kabloları düzeltin', 'Termik sigortayı kontrol edin'] },
+                    'U2': { title: 'Gerilim Düşük', severity: 'medium', desc: 'Besleme gerilimi düşük.', solutions: ['Gerilimi ölçün', 'Elektrik tesisatını kontrol edin', 'Yüksek akım çeken cihazları kontrol edin'] },
+                    'U3': { title: 'İletişim Hatası', severity: 'high', desc: 'İç ünite ile dış ünite arasında iletişim kopukluğu.', solutions: ['Sinyal kablosunu kontrol edin', 'Bağlantıları kontrol edin', 'Kartları kontrol edin'] },
+                    'U4': { title: 'İç Ünite Fan Hatası', severity: 'medium', desc: 'İç ünite fan motoru çalışmıyor.', solutions: ['Fan kapasitörünü kontrol edin', 'Fan motorunu ölçün', 'Kart çıkışını kontrol edin'] },
+                    'U5': { title: 'Uzaktan Kumanda', severity: 'low', desc: 'Uzaktan kumanda iletişim hatası.', solutions: ['Pilleri değiştirin', 'Kumanda sensörünü kontrol edin', 'Kart alıcısını kontrol edin'] },
+                    'U8': { title: 'Dış Ünite Fan Hatası', severity: 'medium', desc: 'Dış ünite fan motoru çalışmıyor.', solutions: ['Kapasitörü kontrol edin', 'Motor sargılarını ölçün', 'Kartı kontrol edin'] },
+                    'E0': { title: 'EEPROM Hatası', severity: 'high', desc: 'Hafıza çipi hatalı.', solutions: ['Kartı resetleyin', 'Yazılımı yenileyin', 'Kartı değiştirin'] },
+                    'E1': { title: 'İç Ünite Kartı', severity: 'high', desc: 'İç ünite elektronik kart hatası.', solutions: ['Kart bağlantılarını kontrol edin', 'Kart üzerindeki komponentleri kontrol edin', 'Kartı değiştirin'] },
+                    'E2': { title: 'Dış Ünite Kartı', severity: 'high', desc: 'Dış ünite elektronik kart hatası.', solutions: ['Kart bağlantılarını kontrol edin', 'Kart üzerindeki komponentleri kontrol edin', 'Kartı değiştirin'] },
+                    'E3': { title: 'Yüksek Basınç', severity: 'high', desc: 'Yüksek basınç şalteri devreye girdi.', solutions: ['Kondenseri temizleyin', 'Fan çalışıyor mu kontrol edin', 'Gaz miktarını kontrol edin', 'Hava akışını kontrol edin'] },
+                    'E4': { title: 'Düşük Basınç', severity: 'high', desc: 'Düşük basınç şalteri devreye girdi.', solutions: ['Gaz miktarını kontrol edin', 'Sızıntı kontrolü yapın', 'Filtreleri temizleyin', 'Evaporatörü kontrol edin'] },
+                    'E5': { title: 'Kompresor Aşırı Akım', severity: 'high', desc: 'Kompresör aşırı akım çekiyor.', solutions: ['Kompresör ampere değerini ölçün', 'Kondansatörü kontrol edin', 'Kartı kontrol edin', 'Kompresör sargılarını kontrol edin'] },
+                    'E6': { title: 'Kompresor Sıcaklığı', severity: 'high', desc: 'Kompresör aşırı ısındı.', solutions: ['Gaz miktarını kontrol edin', 'Kondenseri temizleyin', 'Fan çalışıyor mu kontrol edin', 'Kompresör değerlerini ölçün'] },
+                    'E7': { title: 'Fan Motoru', severity: 'medium', desc: 'Fan motoru devreye girmiyor.', solutions: ['Kapasitörü kontrol edin', 'Motor sargılarını ölçün', 'Kart çıkışını kontrol edin'] },
+                    'E8': { title: 'DC Fan Hatası', severity: 'medium', desc: 'DC fan motoru hata veriyor.', solutions: ['Fan bağlantılarını kontrol edin', 'Fan sürücü kartını kontrol edin', 'Fan motorunu değiştirin'] },
+                    'F0': { title: 'Sensör Hatası', severity: 'medium', desc: 'Sıcaklık sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F1': { title: 'Oda Sensörü', severity: 'medium', desc: 'Oda sıcaklık sensörü hatalı.', solutions: ['Sensör direncini ölçün (5-15 kΩ)', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F2': { title: 'Pipe Sensörü', severity: 'medium', desc: 'Boru sıcaklık sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F3': { title: 'Dış Ünite Sensörü', severity: 'medium', desc: 'Dış ünite sıcaklık sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F4': { title: 'Sıcak Su Sensörü', severity: 'medium', desc: 'Sıcak su sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F6': { title: 'Kondenser Sensörü', severity: 'medium', desc: 'Kondenser sıcaklık sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'H0': { title: 'Hidroskopik', severity: 'medium', desc: 'Nem sensörü hatalı.', solutions: ['Sensörü kontrol edin', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'H1': { title: 'Hidroskopik Hatası', severity: 'low', desc: 'Nem sensörü bağlı değil veya hatalı.', solutions: ['Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'H6': { title: 'Konum Sensörü', severity: 'medium', desc: 'Klapa konum sensörü hatalı.', solutions: ['Sensörü kontrol edin', 'Klapa mekanizmasını kontrol edin', 'Sensörü değiştirin'] },
+                    'J1': { title: 'Yüksek Gerilim', severity: 'high', desc: 'Besleme gerilimi çok yüksek.', solutions: ['Gerilimi ölçün', 'Regülatör takın', 'Elektrik tesisatını kontrol edin'] },
+                    'J2': { title: 'Düşük Gerilim', severity: 'high', desc: 'Besleme gerilimi çok düşük.', solutions: ['Gerilimi ölçün', 'Elektrik tesisatını kontrol edin', 'Yüksek akım çeken cihazları kontrol edin'] },
+                    'L1': { title: 'Yüksek Basınç', severity: 'high', desc: 'Yüksek basınç koruması devreye girdi.', solutions: ['Kondenseri temizleyin', 'Fan çalışıyor mu kontrol edin', 'Gaz miktarını kontrol edin'] },
+                    'L3': { title: 'Kompresor Akım', severity: 'high', desc: 'Kompresör aşırı akım.', solutions: ['Ampere değerini ölçün', 'Kondansatörü kontrol edin', 'Kompresörü kontrol edin'] },
+                    'L4': { title: 'Kompresor Sıcaklık', severity: 'high', desc: 'Kompresör termik sigorta devreye girdi.', solutions: ['Kompresör sıcaklığını kontrol edin', 'Gaz miktarını kontrol edin', 'Kondenseri temizleyin'] },
+                    'L5': { title: 'Kompresor Aşırı Akım', severity: 'high', desc: 'Kompresör aşırı akım koruması devreye girdi.', solutions: ['Ampere değerini ölçün', 'Kartı kontrol edin', 'Kompresörü kontrol edin'] },
+                    'P1': { title: 'Pompa Aşırı Akım', severity: 'medium', desc: 'Tahliye pompası aşırı akım çekiyor.', solutions: ['Pompayı kontrol edin', 'Kartı kontrol edin', 'Pompayı değiştirin'] },
+                    'P4': { title: 'Drain Sensörü', severity: 'medium', desc: 'Tahliye sensörü hatalı.', solutions: ['Sensörü temizleyin', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                },
+                mitsubishi: {
+                    'P1': { title: 'Sızıntı Algılama', severity: 'high', desc: 'Sistemde su sızıntısı algılandı.', solutions: ['Tahliye hortumunu kontrol edin', 'Pompayı kontrol edin', 'Sızıntı noktasını bulun', 'Drenajı temizleyin'] },
+                    'P6': { title: 'Kompresor Akım', severity: 'high', desc: 'Kompresör akımı yüksek.', solutions: ['Ampere değerini ölçün', 'Kondansatörü kontrol edin', 'Kartı kontrol edin'] },
+                    'P8': { title: 'Pipe Sıcaklığı', severity: 'medium', desc: 'Boru sıcaklığı anormal.', solutions: ['Sensörü kontrol edin', 'Gaz miktarını kontrol edin', 'Kompresörü kontrol edin'] },
+                    'E1': { title: 'İletişim Hatası', severity: 'high', desc: 'İç ve dış ünite arasında iletişim yok.', solutions: ['Sinyal kablosunu kontrol edin', 'Bağlantıları kontrol edin', 'Kartları kontrol edin'] },
+                    'E2': { title: 'İç Ünite Kartı', severity: 'high', desc: 'İç ünite elektronik kart hatası.', solutions: ['Kartı kontrol edin', 'Kartı değiştirin'] },
+                    'E3': { title: 'Dış Ünite Kartı', severity: 'high', desc: 'Dış ünite elektronik kart hatası.', solutions: ['Kartı kontrol edin', 'Kartı değiştirin'] },
+                    'E4': { title: 'Yüksek Basınç', severity: 'high', desc: 'Yüksek basınç şalteri devreye girdi.', solutions: ['Kondenseri temizleyin', 'Fanı kontrol edin', 'Gaz miktarını kontrol edin'] },
+                    'E5': { title: 'Düşük Basınç', severity: 'high', desc: 'Düşük basınç şalteri devreye girdi.', solutions: ['Gaz miktarını kontrol edin', 'Sızıntı kontrolü yapın', 'Filtreleri temizleyin'] },
+                    'E6': { title: 'Kompresor Sıcaklığı', severity: 'high', desc: 'Kompresör termik sigorta devreye girdi.', solutions: ['Kompresör sıcaklığını kontrol edin', 'Kondenseri temizleyin', 'Gaz miktarını kontrol edin'] },
+                    'E8': { title: 'Fan Motoru', severity: 'medium', desc: 'Fan motoru hatası.', solutions: ['Kapasitörü kontrol edin', 'Motor sargılarını ölçün', 'Kartı kontrol edin'] },
+                    'F0': { title: 'Sensör Hatası', severity: 'medium', desc: 'Sıcaklık sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F1': { title: 'Oda Sensörü', severity: 'medium', desc: 'Oda sıcaklık sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'F2': { title: 'Pipe Sensörü', severity: 'medium', desc: 'Boru sıcaklık sensörü hatalı.', solutions: ['Sensör direncini ölçün', 'Bağlantıları kontrol edin', 'Sensörü değiştirin'] },
+                    'H1': { title: 'Aşırı Isı', severity: 'high', desc: 'Sistem aşırı ısındı.', solutions: ['Kondenseri temizleyin', 'Fanı kontrol edin', 'Gaz miktarını kontrol edin', 'Kompresörü kontrol edin'] },
+                    'H2': { title: 'Yüksek Basınç', severity: 'high', desc: 'Yüksek basınç koruması devreye girdi.', solutions: ['Kondenseri temizleyin', 'Fanı kontrol edin', 'Gaz miktarını kontrol edin'] },
+                    'H3': { title: 'Düşük Basınç', severity: 'high', desc: 'Düşük basınç koruması devreye girdi.', solutions: ['Gaz miktarını kontrol edin', 'Sızıntı kontrolü yapın', 'Filtreleri temizleyin'] },
+                    'H4': { title: 'Kompresor Akım', severity: 'high', desc: 'Kompresör aşırı akım çekiyor.', solutions: ['Ampere değerini ölçün', 'Kondansatörü kontrol edin', 'Kartı kontrol edin'] },
+                    'H5': { title: 'Kompresor Sıcaklık', severity: 'high', desc: 'Kompresör aşırı ısındı.', solutions: ['Kompresör sıcaklığını kontrol edin', 'Kondenseri temizleyin', 'Gaz miktarını kontrol edin'] },
+                    'H6': { title: 'Fan Motoru', severity: 'medium', desc: 'Fan motoru devreye girmiyor.', solutions: ['Kapasitörü kontrol edin', 'Motor sargılarını ölçün', 'Kartı kontrol edin'] },
+                },
+            },
+        };
+        
+        // Show toast
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // Analyze function
+        function analizEt() {
+            const marka = document.getElementById('marka').value.trim().toLowerCase();
+            const tur = document.getElementById('tur').value.trim().toLowerCase();
+            const model = document.getElementById('model').value.trim();
+            const arizaKodu = document.getElementById('arizaKodu').value.trim().toUpperCase();
+            
+            if (!marka || !tur) {
+                showToast('Lütfen marka ve cihaz türü girin');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loadingContainer').classList.add('show');
+            document.getElementById('resultsCard').classList.remove('show');
+            
+            // Simulate AI processing
+            setTimeout(() => {
+                document.getElementById('loadingContainer').classList.remove('show');
+                
+                const hatalar = getHatalar(marka, tur, arizaKodu);
+                gosterSonuclar(marka, tur, model, hatalar);
+            }, 1500);
+        }
+        
+        // Get errors based on inputs - Fuzzy matching
+        function getHatalar(marka, tur, arizaKodu) {
+            // Normalize inputs
+            const markaLower = marka.toLowerCase();
+            const turLower = tur.toLowerCase();
+            
+            // Find matching device type
+            let turKey = null;
+            if (turLower.includes('çamaşır') || turLower.includes('camasir') || turLower.includes('çamaşır makinesi')) {
+                turKey = 'camasir';
+            } else if (turLower.includes('bulaşık') || turLower.includes('bulasik') || turLower.includes('bulaşık makinesi')) {
+                turKey = 'bulasik';
+            } else if (turLower.includes('kombi') || turLower.includes('kazan')) {
+                turKey = 'kombi';
+            } else if (turLower.includes('klima') || turLower.includes('klim')) {
+                turKey = 'klima';
+            } else if (turLower.includes('buzdolabı') || turLower.includes('buzdolabi') || turLower.includes('buz dolabı')) {
+                turKey = 'buzdolabi';
+            }
+            
+            if (!turKey) return [];
+            
+            const turData = ARIZA_KODLARI[turKey];
+            if (!turData) return [];
+            
+            // Find matching brand
+            let markaKey = null;
+            const markaKeys = Object.keys(turData);
+            
+            for (const key of markaKeys) {
+                if (markaLower.includes(key) || key.includes(markaLower)) {
+                    markaKey = key;
+                    break;
+                }
+            }
+            
+            // If no exact match, try common brand variations
+            if (!markaKey) {
+                const brandMappings = {
+                    'arcelik': ['arçelik', 'arcelik'],
+                    'beko': ['beko'],
+                    'vestel': ['vestel'],
+                    'bosch': ['bosch'],
+                    'siemens': ['siemens'],
+                    'profilo': ['profilo'],
+                    'lg': ['lg'],
+                    'samsung': ['samsung'],
+                    'hotpoint': ['hotpoint', 'hot point'],
+                    'indesit': ['indesit'],
+                    'whirlpool': ['whirlpool'],
+                    'electrolux': ['electrolux'],
+                    'ariston': ['ariston'],
+                    'demirdokum': ['demirdöküm', 'demirdokum', 'demir döküm'],
+                    'vaillant': ['vaillant'],
+                    'baymak': ['baymak'],
+                    'eca': ['eca'],
+                    'daikin': ['daikin'],
+                    'mitsubishi': ['mitsubishi'],
+                    'fujitsu': ['fujitsu'],
+                    'airfel': ['airfel'],
+                    'ferroli': ['ferroli']
+                };
+                
+                for (const [key, variations] of Object.entries(brandMappings)) {
+                    if (variations.some(v => markaLower.includes(v))) {
+                        if (turData[key]) {
+                            markaKey = key;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (!markaKey) return [];
+            
+            const markaData = turData[markaKey];
+            if (!markaData) return [];
+            
+            // If specific error code provided, filter for it
+            if (arizaKodu && markaData[arizaKodu]) {
+                return [{ kod: arizaKodu, ...markaData[arizaKodu] }];
+            }
+            
+            // Return all errors for this brand/type
+            return Object.entries(markaData).map(([kod, data]) => ({
+                kod: kod,
+                ...data
+            }));
+        }
+        
+        // Display results
+        function gosterSonuclar(marka, tur, model, hatalar) {
+            const markaFormatted = marka.charAt(0).toUpperCase() + marka.slice(1);
+            const turFormatted = tur.charAt(0).toUpperCase() + tur.slice(1);
+            
+            document.getElementById('resultMarka').textContent = markaFormatted;
+            document.getElementById('resultModel').textContent = model ? model + ' - ' + turFormatted : turFormatted;
+            
+            // Update stats
+            document.getElementById('statKod').textContent = hatalar.length;
+            document.getElementById('statYuksek').textContent = hatalar.filter(h => h.severity === 'high').length;
+            document.getElementById('statOrta').textContent = hatalar.filter(h => h.severity === 'medium').length;
+            
+            // Generate error cards
+            const errorList = document.getElementById('errorList');
+            
+            if (hatalar.length === 0) {
+                errorList.innerHTML = `
+                    <div class="no-results">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h3>Arıza Kodu Bulunamadı</h3>
+                        <p>Bu model için veritabanında arıza kodu bulunmamaktadır.</p>
+                        <p style="margin-top:10px;font-size:13px;">Lütfen farklı bir model veya marka seçin.</p>
+                    </div>
+                `;
+            } else {
+                errorList.innerHTML = hatalar.map(hata => `
+                    <div class="error-card">
+                        <div class="error-header">
+                            <div class="error-code">${hata.kod}</div>
+                            <div class="error-severity severity-${hata.severity}">
+                                ${hata.severity === 'high' ? 'YÜKSEK RİSK' : hata.severity === 'medium' ? 'ORTA RİSK' : 'DÜŞÜK RİSK'}
+                            </div>
+                        </div>
+                        <div class="error-title">${hata.title}</div>
+                        <div class="error-desc">${hata.desc}</div>
+                        <div class="solution-box">
+                            <div class="solution-title">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Önerilen Çözümler
+                            </div>
+                            <ul class="solution-list">
+                                ${hata.solutions.map(sol => `<li>${sol}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('resultsCard').classList.add('show');
+            
+            // Scroll to results
+            document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BÖLGE MERKEZ SERVİSİ - Teknisyen Yönlendirme</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            background: #1e40af;
+            color: white;
+            padding: 8px 12px;
+        }
+        .status-bar-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .signal { display: flex; gap: 2px; }
+        .signal-bar { width: 3px; height: 12px; background: white; border-radius: 1px; }
+        .signal-bar.weak { background: rgba(255,255,255,0.5); }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 18px; font-weight: 600; }
+        .icon-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        /* Content */
+        .content { padding: 16px; }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+        }
+        .card-header {
+            background: #dbeafe;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .card-header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e40af;
+        }
+        .card-body { padding: 16px; }
+        .card-header-alt {
+            background: #f3f4f6;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .card-header-alt h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .info-item {}
+        .info-label {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-bottom: 2px;
+        }
+        .info-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1f2937;
+        }
+        .info-full {
+            grid-column: 1 / -1;
+        }
+        .info-full .info-value {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .text-red { color: #dc2626; }
+        
+        /* Dropdown */
+        .dropdown-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            text-align: left;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown-btn::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #6b7280;
+        }
+        .dropdown-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .dropdown-main {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 500;
+        }
+        .dropdown-sub {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        .dropdown-placeholder {
+            color: #9ca3af;
+        }
+        
+        /* Time Card */
+        .time-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .time-icon {
+            width: 40px;
+            height: 40px;
+            background: #dbeafe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .time-icon svg {
+            width: 20px;
+            height: 20px;
+            color: #2563eb;
+        }
+        .time-info {}
+        .time-main {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f2937;
+        }
+        .time-sub {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        /* Main Button */
+        .main-btn {
+            width: 100%;
+            padding: 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+        }
+        .main-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        /* Popup */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: flex-end;
+        }
+        .popup-overlay.show { display: flex; }
+        .popup {
+            width: 100%;
+            background: #1f2937;
+            border-radius: 24px 24px 0 0;
+            max-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .popup-header {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #374151;
+        }
+        .popup-check {
+            width: 32px;
+            height: 32px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+        }
+        .popup-check svg {
+            width: 18px;
+            height: 18px;
+            color: white;
+        }
+        .popup-title {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .popup-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .popup-item {
+            padding: 14px 16px;
+            color: white;
+            font-size: 15px;
+            border-bottom: 1px solid #374151;
+            cursor: pointer;
+        }
+        .popup-item.selected {
+            background: rgba(37,99,235,0.3);
+        }
+        .popup-item-name {
+            font-weight: 500;
+        }
+        .popup-item-phone {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        .popup-footer {
+            padding: 12px;
+            border-top: 1px solid #374151;
+        }
+        .popup-close {
+            width: 100%;
+            padding: 12px;
+            background: #4b5563;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #16a34a;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 200;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-bar-top">
+            <span id="currentTime">21:14</span>
+            <div style="display:flex;align-items:center;gap:6px">
+                <div class="signal">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar weak"></div>
+                </div>
+                <span>LTE</span>
+                <span>12</span>
+            </div>
+        </div>
+        <div class="header">
+            <h1>Teknisyen Yönlendirme</h1>
+            <button class="icon-btn" onclick="goBack()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Servis Özeti -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Servis Özeti #<span id="servisNo">-</span></h2>
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Müşteri</div>
+                        <div class="info-value" id="musteriAdi">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Telefon</div>
+                        <div class="info-value" id="telefon">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Cihaz</div>
+                        <div class="info-value" id="cihaz">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Model</div>
+                        <div class="info-value" id="model">-</div>
+                    </div>
+                    <div class="info-item info-full">
+                        <div class="info-label">Adres</div>
+                        <div class="info-value" id="adres">-</div>
+                    </div>
+                    <div class="info-item info-full">
+                        <div class="info-label">Arıza</div>
+                        <div class="info-value text-red" id="ariza">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teknisyen Seçimi -->
+        <div class="card">
+            <div class="card-header-alt">
+                <h2>Teknisyen Seçimi</h2>
+            </div>
+            <div class="card-body">
+                <button class="dropdown-btn" id="teknisyenBtn" onclick="openPopup()">
+                    <div class="dropdown-info">
+                        <span class="dropdown-main dropdown-placeholder" id="teknisyenMain">Teknisyen Seçiniz</span>
+                        <span class="dropdown-sub" id="teknisyenSub" style="display:none"></span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Ziyaret Zamanı -->
+        <div class="card">
+            <div class="card-header-alt">
+                <h2>Ziyaret Zamanı</h2>
+            </div>
+            <div class="card-body">
+                <div class="time-row">
+                    <div class="time-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="time-info">
+                        <div class="time-main" id="ziyaretTarih">-</div>
+                        <div class="time-sub" id="ziyaretSaat">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yönlendir Butonu -->
+        <button class="main-btn" id="yonlendirBtn" onclick="yonlendir()" disabled>
+            Teknisyene Yönlendir
+        </button>
+    </div>
+
+    <!-- Popup -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup">
+            <div class="popup-header">
+                <div class="popup-check">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div class="popup-title">Teknisyen Seçiniz</div>
+            </div>
+            <div class="popup-body" id="popupBody"></div>
+            <div class="popup-footer">
+                <button class="popup-close" onclick="closePopup()">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Auth check
+        if (!sessionStorage.getItem('karaca_auth')) {
+            window.location.href = 'index.html';
+        }
+
+        // Teknisyenler
+        const TEKNISYENLER = [
+            { id: '1', ad: 'Gezici Bölge Ekibi', telefon: '' },
+            { id: '2', ad: 'Bölge Merkez Servisi', telefon: '' },
+            { id: '3', ad: 'BÖLGE MERKEZ', telefon: '' },
+            { id: '4', ad: 'CAN KARACA', telefon: '' },
+            { id: '5', ad: 'KÜRŞAT KARAYAKA', telefon: '' }
+        ];
+
+        let servis = null;
+        let selectedTeknisyen = null;
+
+        // Load servis
+        function loadServis() {
+            const data = sessionStorage.getItem('current_servis');
+            if (!data) {
+                window.location.href = 'yeni-servis.html';
+                return;
+            }
+            
+            servis = JSON.parse(data);
+            
+            document.getElementById('servisNo').textContent = servis.servisNo;
+            document.getElementById('musteriAdi').textContent = servis.musteri.ad;
+            document.getElementById('telefon').textContent = servis.musteri.telefon1;
+            document.getElementById('cihaz').textContent = servis.cihaz.marka + ' ' + servis.cihaz.tur;
+            document.getElementById('model').textContent = servis.cihaz.model;
+            document.getElementById('adres').textContent = servis.musteri.adres + ', ' + servis.musteri.ilce;
+            document.getElementById('ariza').textContent = servis.cihaz.ariza;
+            
+            const tarih = new Date(servis.musteri.musaitOlmaZamani.tarih);
+            document.getElementById('ziyaretTarih').textContent = tarih.toLocaleDateString('tr-TR');
+            document.getElementById('ziyaretSaat').textContent = servis.musteri.musaitOlmaZamani.baslangic + ' - ' + servis.musteri.musaitOlmaZamani.bitis;
+        }
+
+        function openPopup() {
+            const popup = document.getElementById('popup');
+            const body = document.getElementById('popupBody');
+            
+            body.innerHTML = TEKNISYENLER.map(t => 
+                `<div class="popup-item ${selectedTeknisyen?.id === t.id ? 'selected' : ''}" onclick="selectTeknisyen('${t.id}')">
+                    <div class="popup-item-name">${t.ad}</div>
+                    <div class="popup-item-phone">${t.telefon}</div>
+                </div>`
+            ).join('');
+            
+            popup.classList.add('show');
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('show');
+        }
+
+        function selectTeknisyen(id) {
+            selectedTeknisyen = TEKNISYENLER.find(t => t.id === id);
+            
+            const main = document.getElementById('teknisyenMain');
+            const sub = document.getElementById('teknisyenSub');
+            
+            main.textContent = selectedTeknisyen.ad;
+            main.classList.remove('dropdown-placeholder');
+            sub.textContent = selectedTeknisyen.telefon || 'Teknisyen';
+            sub.style.display = 'block';
+            
+            document.getElementById('yonlendirBtn').disabled = false;
+            
+            closePopup();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function yonlendir() {
+            if (!selectedTeknisyen || !servis) {
+                showToast('Lütfen teknisyen seçiniz');
+                return;
+            }
+            
+            servis.teknisyen = selectedTeknisyen;
+            servis.islemler.push({
+                id: 'islem_' + Date.now(),
+                tarih: new Date().toISOString(),
+                islemiYapan: 'Çağrı Merkezi',
+                islemAdi: 'Teknisyen Yönlendir',
+                aciklama: 'Teknisyen : ' + selectedTeknisyen.ad + '\nGidiş Tarihi : ' + new Date().toLocaleDateString('tr-TR')
+            });
+            servis.updatedAt = new Date().toISOString();
+            
+            // Update storage
+            const servisler = JSON.parse(localStorage.getItem('karaca_servisler') || '[]');
+            const idx = servisler.findIndex(s => s.id === servis.id);
+            if (idx >= 0) servisler[idx] = servis;
+            localStorage.setItem('karaca_servisler', JSON.stringify(servisler));
+            sessionStorage.setItem('current_servis', JSON.stringify(servis));
+            
+            showToast(selectedTeknisyen.ad + ' yönlendirildi');
+            
+            setTimeout(() => {
+                window.location.href = 'servis-detay.html';
+            }, 1000);
+        }
+
+        function goBack() {
+            window.location.href = 'yeni-servis.html';
+        }
+
+        // Update time
+        document.getElementById('currentTime').textContent = 
+            new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+
+        // Initialize
+        loadServis();
+
+        // Close popup on backdrop click
+        document.getElementById('popup').addEventListener('click', function(e) {
+            if (e.target === this) closePopup();
+        });
+    </script>
+</body>
+</html>

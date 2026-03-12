@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>YEDEK PARÇA DEPO - KARACA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #fbbf24;
+            color: white;
+            position: relative;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+        
+        /* Back Button */
+        .back-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+        }
+        
+        /* Container */
+        .container {
+            padding: 16px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Image Upload */
+        .upload-area {
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        .upload-area.has-image {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        .upload-icon {
+            width: 60px;
+            height: 60px;
+            background: #e0e7ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            color: #3b82f6;
+        }
+        .upload-text {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .upload-hint {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        
+        /* Input Group */
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        /* Button */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59,130,246,0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        
+        /* Parts Table */
+        .parts-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+        .parts-table th {
+            background: #1e40af;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .parts-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        .parts-table tr:hover {
+            background: #f8fafc;
+        }
+        .part-code {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: #1e40af;
+            font-size: 12px;
+        }
+        .part-name {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        .stock-input {
+            width: 60px;
+            padding: 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .price-input {
+            width: 90px;
+            padding: 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            text-align: right;
+            font-size: 13px;
+        }
+        .order-btn {
+            padding: 6px 12px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .order-btn:hover {
+            background: #d97706;
+        }
+        .order-btn.ordered {
+            background: #10b981;
+        }
+        
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e40af;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        /* Category Badge */
+        .category-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-camasir { background: #dbeafe; color: #1e40af; }
+        .badge-bulasik { background: #dcfce7; color: #166534; }
+        .badge-kombi { background: #fef3c7; color: #92400e; }
+        .badge-klima { background: #e0e7ff; color: #3730a3; }
+        .badge-buzdolabi { background: #fce7f3; color: #be185d; }
+        .badge-kurutma { background: #ccfbf1; color: #0f766e; }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: #9ca3af;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .nav-item.active {
+            color: #f97316;
+        }
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #1e40af;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 200;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* Device Info Header */
+        .device-info-header {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .device-type {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .device-count {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 640px) {
+            .parts-table {
+                font-size: 11px;
+            }
+            .parts-table th, .parts-table td {
+                padding: 8px 4px;
+            }
+            .stock-input, .price-input {
+                width: 50px;
+                font-size: 11px;
+            }
+            .order-btn {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="back-btn" onclick="geriDon()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Geri
+        </button>
+        <h1>YEDEK PARÇA DEPO</h1>
+        <p>Cihaz Etiketi Yükle ve Stok Sorgula</p>
+    </div>
+    
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="totalDevices">0</div>
+                <div class="stat-label">Cihaz Türü</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalParts">0</div>
+                <div class="stat-label">Toplam Parça</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lowStock">0</div>
+                <div class="stat-label">Az Stok</div>
+            </div>
+        </div>
+        
+        <!-- Upload Card -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Cihaz Etiketi Yükle
+            </div>
+            
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">
+                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div class="upload-text">Cihaz etiketi fotoğrafı yüklemek için tıklayın</div>
+                <div class="upload-hint">veya sürükleyip bırakın (PNG, JPG)</div>
+                <img id="previewImage" class="preview-image" style="display:none">
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
+        </div>
+        
+        <!-- Device Type Input -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                Cihaz Bilgileri
+            </div>
+            
+            <div class="input-group">
+                <label>Cihaz Türü</label>
+                <input type="text" id="cihazTuru" placeholder="Örn: Çamaşır Makinesi, Kombi, Klima, Buzdolabı..." oninput="generatePartsList()">
+            </div>
+            
+            <div class="input-group">
+                <label>Model No (Opsiyonel)</label>
+                <input type="text" id="modelNo" placeholder="Örn: CM 10124, F6104">
+            </div>
+            
+            <button class="btn btn-primary" onclick="generatePartsList()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Parça Listesi Oluştur
+            </button>
+        </div>
+        
+        <!-- Parts List -->
+        <div class="card" id="partsCard" style="display:none">
+            <div class="device-info-header">
+                <div>
+                    <div class="device-type" id="deviceTypeDisplay">-</div>
+                    <div class="device-count" id="devicePartCount">- Parça</div>
+                </div>
+                <span class="category-badge" id="categoryBadge">GENEL</span>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="parts-table">
+                    <thead>
+                        <tr>
+                            <th>Parça Kodu</th>
+                            <th>Parça Adı</th>
+                            <th>Stok</th>
+                            <th>Fiyat (₺)</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partsTableBody">
+                        <!-- Parts will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="saveStockData()" style="flex:1">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Stokları Kaydet
+                </button>
+                <button class="btn btn-warning" onclick="exportOrderList()" style="flex:1">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Sipariş Listesi
+                </button>
+            </div>
+        </div>
+        
+        <!-- Empty State -->
+        <div class="card" id="emptyState">
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <h3>Yedek Parça Depo</h3>
+                <p>Cihaz türü girerek otomatik parça listesi oluşturun</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <a href="ana-sayfa.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Ana Sayfa
+        </a>
+        <a href="karaca-depo.html" class="nav-item active">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            Depo
+        </a>
+        <a href="karaca-yuzdelik.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Hesapla
+        </a>
+        <a href="karacacheat.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+            AI
+        </a>
+        <a href="karaca-muhasebe.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Muhasebe
+        </a>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // Parça veritabanı - Cihaz türüne göre EKSİKSİZ
+        const PARTS_DATABASE = {
+            'çamaşır makinesi': [
+                'Körük Lastiği', 'Körük Kelepçesi', 'Kazan Rulmanı', 'Kazan Keçesi',
+                'Kapı Kilidi', 'Kapı Mandalı', 'Kapı Contası', 'Kapı Camı',
+                'Su Pompa Motoru', 'Pompa Filtresi', 'Pompa Hortumu',
+                'Su Alım Valfi', 'Su Alım Hortumu', 'Su Filtresi',
+                'Basınç Şalteri', 'Seviye Şalteri',
+                'Rezistans', 'Rezistans Contası', 'Termostat',
+                'NTC Sensör', 'Sıcaklık Sensörü', 'Kontrol Termostatı',
+                'Karbon Fırça', 'Fırça Tutucu', 'Motor Kayışı', 'Kayış Kasnağı',
+                'Tacho Sensör', 'Motor Devre Kesici', 'Motor Rölesi',
+                'Ana Kart', 'Ekran Kartı', 'Display Panel', 'Kontrol Paneli',
+                'Şok Emici Ayak', 'Ayak Pedi', 'Titreşim Amortisörü',
+                'Deterjan Gözu', 'Yumuşatıcı Gözu', 'Yıkama Gözu', 'Bölme Gözü',
+                'Program Çarkı', 'Program Kadranı', 'Basma Düğmesi', 'Anahtar',
+                'Gövde Contası', 'Arka Panel', 'Ön Panel', 'Yan Panel',
+                'Su Tahliye Hortumu', 'Hava Filtresi', 'Gaz Filtresi'
+            ],
+            'camasir makinesi': [
+                'Körük Lastiği', 'Körük Kelepçesi', 'Kazan Rulmanı', 'Kazan Keçesi',
+                'Kapı Kilidi', 'Kapı Mandalı', 'Kapı Contası', 'Kapı Camı',
+                'Su Pompa Motoru', 'Pompa Filtresi', 'Pompa Hortumu',
+                'Su Alım Valfi', 'Su Alım Hortumu', 'Su Filtresi',
+                'Basınç Şalteri', 'Seviye Şalteri',
+                'Rezistans', 'Rezistans Contası', 'Termostat',
+                'NTC Sensör', 'Sıcaklık Sensörü', 'Kontrol Termostatı',
+                'Karbon Fırça', 'Fırça Tutucu', 'Motor Kayışı', 'Kayış Kasnağı',
+                'Tacho Sensör', 'Motor Devre Kesici', 'Motor Rölesi',
+                'Ana Kart', 'Ekran Kartı', 'Display Panel', 'Kontrol Paneli',
+                'Şok Emici Ayak', 'Ayak Pedi', 'Titreşim Amortisörü',
+                'Deterjan Gözu', 'Yumuşatıcı Gözu', 'Yıkama Gözu', 'Bölme Gözü',
+                'Program Çarkı', 'Program Kadranı', 'Basma Düğmesi', 'Anahtar',
+                'Gövde Contası', 'Arka Panel', 'Ön Panel', 'Yan Panel',
+                'Su Tahliye Hortumu', 'Hava Filtresi', 'Gaz Filtresi'
+            ],
+            'bulaşık makinesi': [
+                'Alt Sepet Tekerleği', 'Üst Sepet Tekerleği', 'Sepet Rayı', 'Sepet Kafesi',
+                'Sepet Sapı', 'Sepet Kapağı', 'Sepet Kilidi',
+                'Pervane Motoru', 'Pervane Motor Kapasitörü', 'Pervane Bıçağı',
+                'Üst Pervane', 'Alt Pervane', 'Pervane Mili', 'Pervane Contası',
+                'Su Isıtıcı Rezistans', 'Rezistans Contası', 'Su Isıtıcı Termostatı',
+                'NTC Sensör', 'Sıcaklık Sensörü', 'Kontrol Sensörü',
+                'Su Alım Valfi', 'Su Alım Hortumu', 'Su Filtresi', 'Basınç Şalteri',
+                'Tahliye Pompa Motoru', 'Tahliye Hortumu', 'Tahliye Filtresi',
+                'Kapı Kilidi', 'Kapı Mandalı', 'Kapı Contası', 'Kapı Menteşesi',
+                'Tuz Kutusu Kapağı', 'Tuz Kutusu Contası', 'Tuz Değirmeni',
+                'Parlatıcı Kutusu', 'Parlatıcı Kapağı', 'Parlatıcı Pompası',
+                'Ana Filtre', 'İnce Filtre', 'Metal Filtre', 'Süzgeç',
+                'Bardak Tutucu', 'Kaşık Sepeti', 'Tabak Rafı', 'Kase Rafı',
+                'Deterjan Tablet Gözu', 'Toz Deterjan Gözu', 'Sıvı Deterjan Gözu',
+                'Ana Kart', 'Ekran Kartı', 'Display Panel', 'Kontrol Paneli',
+                'Program Çarkı', 'Basma Düğmesi', 'Anahtar', 'Led Göstergeler',
+                'Su Sertlik Sensörü', 'Şamandıra Şalteri', 'Boya Şalteri',
+                'Gövde Contası', 'Alt Kapak', 'Yan Panel', 'Arka Panel',
+                'Ayak', 'Şok Emici Ayak', 'Seviye Ayarı Vidası'
+            ],
+            'bulasik makinesi': [
+                'Alt Sepet Tekerleği', 'Üst Sepet Tekerleği', 'Sepet Rayı', 'Sepet Kafesi',
+                'Sepet Sapı', 'Sepet Kapağı', 'Sepet Kilidi',
+                'Pervane Motoru', 'Pervane Motor Kapasitörü', 'Pervane Bıçağı',
+                'Üst Pervane', 'Alt Pervane', 'Pervane Mili', 'Pervane Contası',
+                'Su Isıtıcı Rezistans', 'Rezistans Contası', 'Su Isıtıcı Termostatı',
+                'NTC Sensör', 'Sıcaklık Sensörü', 'Kontrol Sensörü',
+                'Su Alım Valfi', 'Su Alım Hortumu', 'Su Filtresi', 'Basınç Şalteri',
+                'Tahliye Pompa Motoru', 'Tahliye Hortumu', 'Tahliye Filtresi',
+                'Kapı Kilidi', 'Kapı Mandalı', 'Kapı Contası', 'Kapı Menteşesi',
+                'Tuz Kutusu Kapağı', 'Tuz Kutusu Contası', 'Tuz Değirmeni',
+                'Parlatıcı Kutusu', 'Parlatıcı Kapağı', 'Parlatıcı Pompası',
+                'Ana Filtre', 'İnce Filtre', 'Metal Filtre', 'Süzgeç',
+                'Bardak Tutucu', 'Kaşık Sepeti', 'Tabak Rafı', 'Kase Rafı',
+                'Deterjan Tablet Gözu', 'Toz Deterjan Gözu', 'Sıvı Deterjan Gözu',
+                'Ana Kart', 'Ekran Kartı', 'Display Panel', 'Kontrol Paneli',
+                'Program Çarkı', 'Basma Düğmesi', 'Anahtar', 'Led Göstergeler',
+                'Su Sertlik Sensörü', 'Şamandıra Şalteri', 'Boya Şalteri',
+                'Gövde Contası', 'Alt Kapak', 'Yan Panel', 'Arka Panel',
+                'Ayak', 'Şok Emici Ayak', 'Seviye Ayarı Vidası'
+            ],
+            'kombi': [
+                'Sirkülasyon Pompası', 'Pompa Motoru', 'Pompa Kapasitörü', 'Pompa Rölesi',
+                'Pompa Contası', 'Pompa Mili', 'Pervane', 'Vana Grubu',
+                'Genleşme Tankı', 'Güvenlik Valfi', 'Emniyet Ventili',
+                'Emniyet Termostatı', 'Limit Termostat', 'Aşırı Isınma Termostatı',
+                'Kalorifer NTC', 'Sıcak Su NTC', 'Dış Hava Sensörü', 'Baca Sensörü',
+                'Gaz Valfı', 'Gaz Oransal Valf', 'Gaz Bloku', 'Gaz Filtresi',
+                'Fan Motoru', 'Fan Motor Kapasitörü', 'Fan Pervanesi', 'Hava Akış Şalteri',
+                'Ateşleme Elektrod', 'Ateşleme Kablo', 'Ateşleme Trafo',
+                'İyonizasyon Probu', 'İyonizasyon Kablo', 'İyonizasyon Kartı',
+                'Su Basınç Şalteri', 'Düşük Basınç Şalteri', 'Yüksek Basınç Şalteri',
+                'Hava Akış Şalteri', 'Hava Probu', 'Hava Hortumu',
+                'Doldurma Musluğu', 'Tahliye Musluğu', 'Kapatma Valfı',
+                'Eşanjer Contası', 'Birincil Eşanjer', 'İkincil Eşanjer',
+                'By-pass Valfi', 'Anti-biyoz Valf', 'Geri Dönüş Valfı',
+                'Gaz Regülatörü', 'Gaz Basınç Düzenleyici', 'Gaz Musluğu',
+                'Ana Kart', 'Görselleştirme Kartı', 'Display Panel', 'Kontrol Paneli',
+                'Prosestat', 'Manometre', 'Basınç Göstergesi', 'Sıcaklık Göstergesi',
+                'Hidrofor', 'Hidrolik Grup', 'Pompa Grubu', 'Vana Grubu',
+                'Baca', 'Baca Borusu', 'Baca Contası', 'Baca Kapağı',
+                'Su Filtresi', 'Manyetik Filtre', 'Toz Filtresi'
+            ],
+            'klima': [
+                'Kompresör', 'Kompresör Kapasitörü', 'Kompresör Termik', 'Kompresör Rölesi',
+                'Kompresör Bobin', 'Kompresör Valv', 'Kompresör Contası',
+                'Evaporatör', 'Evaporatör Fanı', 'Evaporatör NTC', 'Evaporatör Contası',
+                'Kondenser', 'Kondenser Fanı', 'Kondenser NTC', 'Kondenser Contası',
+                'Genleşme Valfi', 'Elektronik Genleşme Valfi', 'Kelebek Valf',
+                'Klapa Motoru', 'Klapa Kafası', 'Klapa Contası', 'Step Motor',
+                'Fan Motoru (İç)', 'Fan Motoru (Dış)', 'Fan Kapasitörü', 'Fan Pervanesi',
+                'Fan Motoru Bilyası', 'Fan Aspiratörü', 'Hava Üfleyici',
+                'PCB Kart', 'Güç Kartı', 'Sürücü Kartı', 'Kontrol Kartı',
+                'Display Kart', 'Led Panel', 'Gösterge Paneli', 'Kontrol Paneli',
+                'Uzaktan Kumanda', 'Kumanda Pili', 'Kumanda Sensörü', 'Alıcı Kart',
+                'Sıcaklık Sensörü (Pipe)', 'Sıcaklık Sensörü (Oda)', 'Hava Sensörü',
+                'Kondenser Sensörü', 'Evaporatör Sensörü', 'Suction Sensörü',
+                'Hava Filtresi', 'Toz Filtresi', 'Karbon Filtre', 'HEPA Filtre',
+                'Tahliye Pompası', 'Su Pompası', 'Kondens Pompası', 'Pompa Hortumu',
+                'Yüksek Basınç Şalteri', 'Düşük Basınç Şalteri', 'Basınç Sensörü',
+                'Refrigerant Gaz (R32)', 'Refrigerant Gaz (R410A)', 'Refrigerant Boru',
+                'Bakır Boru', 'İzolasyon', 'Bant', 'Köpük',
+                'Kablolar', 'Sinyal Kablosu', 'Güç Kablosu', 'Konnektörler',
+                'Montaj Ayağı', 'Vibrasyon Amortisörü', 'Dış Ünite Ayağı'
+            ],
+            'buzdolabı': [
+                'Kompresör', 'Kompresör Rölesi', 'Kompresör Kapasitörü', 'Kompresör Termik',
+                'Kompresör Bobin', 'Kompresör Valf', 'Kompresör Contası',
+                'Kondenser', 'Kondenser Fanı', 'Kondenser Motoru', 'Kondenser Contası',
+                'Evaporatör', 'Evaporatör Fanı', 'Evaporatör Motoru', 'Evaporatör Contası',
+                'Soğutma Gazı', 'R134A', 'R600A', 'Soğutucu Akışkan',
+                'Buzdolabı Termostatı', 'Derin Dondurucu Termostatı', 'Elektronik Termostat',
+                'Fan Motoru', 'Fan Motoru Bilyası', 'Fan Pervanesi', 'Fan Kontrol Kartı',
+                'Fan Motor Bıçağı', 'Buzdolabı Fanı', 'Dondurucu Fanı',
+                'Defrost Rezistansı', 'Defrost Termostatı', 'Defrost Zaman Saati',
+                'Defrost Sensörü', 'Buz Sensörü', 'Buz Çözücü Rezistans',
+                'Kapı Contası (Üst)', 'Kapı Contası (Alt)', 'Kapı Contası (Derin Dondurucu)',
+                'Kapı Mıknatısı', 'Kapı Kapağı', 'Kapı Tutacağı', 'Kapı Menteşesi',
+                'Lamba Düğmesi', 'Kapı Şalteri', 'Işık Şalteri',
+                'Aydınlatma Lambası', 'LED Lamba', 'Ampul', 'Lamba Duyu',
+                'Su Tahliye Tavası', 'Tahliye Borusu', 'Tahliye Hortumu', 'Su Gideri',
+                'Koku Filtresi', 'Hava Filtresi', 'Aktif Karbon Filtre',
+                'Su Filtresi', 'Su Arıtma Filtresi', 'Buz Makinesi Filtresi',
+                'Buz Makinesi', 'Buz Kalıbı', 'Buz Haznesi', 'Buz Dispenseri',
+                'Su Dispenseri', 'Su Pompası', 'Su Tankı', 'Su Hortumu',
+                'Ana Kart', 'Kontrol Kartı', 'Display Panel', 'Led Panel',
+                'Sıcaklık Sensörü', 'Oda Sensörü', 'Buzdolabı Sensörü', 'Dondurucu Sensörü',
+                'Gövde Contası', 'Arka Panel', 'Yan Panel', 'Alt Panel', 'Üst Panel',
+                'Ayak', 'Tekerlek', 'Seviye Ayak', 'Şok Emici Ayak',
+                'Raf', 'Buzdolabı Rafı', 'Dondurucu Rafı', 'Sebzelik', 'Meyvelik',
+                'Çekmece', 'Dondurucu Çekmecesi', 'Buzluk Çekmecesi', 'Sürgü',
+                'Kilit', 'Çocuk Kilidi', 'Emniyet Kilidi'
+            ],
+            'buzdolabi': [
+                'Kompresör', 'Kompresör Rölesi', 'Kompresör Kapasitörü', 'Kompresör Termik',
+                'Kompresör Bobin', 'Kompresör Valf', 'Kompresör Contası',
+                'Kondenser', 'Kondenser Fanı', 'Kondenser Motoru', 'Kondenser Contası',
+                'Evaporatör', 'Evaporatör Fanı', 'Evaporatör Motoru', 'Evaporatör Contası',
+                'Soğutma Gazı', 'R134A', 'R600A', 'Soğutucu Akışkan',
+                'Buzdolabı Termostatı', 'Derin Dondurucu Termostatı', 'Elektronik Termostat',
+                'Fan Motoru', 'Fan Motoru Bilyası', 'Fan Pervanesi', 'Fan Kontrol Kartı',
+                'Fan Motor Bıçağı', 'Buzdolabı Fanı', 'Dondurucu Fanı',
+                'Defrost Rezistansı', 'Defrost Termostatı', 'Defrost Zaman Saati',
+                'Defrost Sensörü', 'Buz Sensörü', 'Buz Çözücü Rezistans',
+                'Kapı Contası (Üst)', 'Kapı Contası (Alt)', 'Kapı Contası (Derin Dondurucu)',
+                'Kapı Mıknatısı', 'Kapı Kapağı', 'Kapı Tutacağı', 'Kapı Menteşesi',
+                'Lamba Düğmesi', 'Kapı Şalteri', 'Işık Şalteri',
+                'Aydınlatma Lambası', 'LED Lamba', 'Ampul', 'Lamba Duyu',
+                'Su Tahliye Tavası', 'Tahliye Borusu', 'Tahliye Hortumu', 'Su Gideri',
+                'Koku Filtresi', 'Hava Filtresi', 'Aktif Karbon Filtre',
+                'Su Filtresi', 'Su Arıtma Filtresi', 'Buz Makinesi Filtresi',
+                'Buz Makinesi', 'Buz Kalıbı', 'Buz Haznesi', 'Buz Dispenseri',
+                'Su Dispenseri', 'Su Pompası', 'Su Tankı', 'Su Hortumu',
+                'Ana Kart', 'Kontrol Kartı', 'Display Panel', 'Led Panel',
+                'Sıcaklık Sensörü', 'Oda Sensörü', 'Buzdolabı Sensörü', 'Dondurucu Sensörü',
+                'Gövde Contası', 'Arka Panel', 'Yan Panel', 'Alt Panel', 'Üst Panel',
+                'Ayak', 'Tekerlek', 'Seviye Ayak', 'Şok Emici Ayak',
+                'Raf', 'Buzdolabı Rafı', 'Dondurucu Rafı', 'Sebzelik', 'Meyvelik',
+                'Çekmece', 'Dondurucu Çekmecesi', 'Buzluk Çekmecesi', 'Sürgü',
+                'Kilit', 'Çocuk Kilidi', 'Emniyet Kilidi'
+            ],
+            'kurutma makinesi': [
+                'Kompresör', 'Kompresör Kapasitörü', 'Kompresör Termik', 'Kompresör Rölesi',
+                'Kompresör Bobin', 'Kompresör Valv', 'Kompresör Contası',
+                'Kondenser', 'Kondenser Fanı', 'Kondenser NTC', 'Kondenser Contası',
+                'Evaporatör', 'Evaporatör Fanı', 'Evaporatör NTC', 'Evaporatör Contası',
+                'Kapı Kilidi', 'Kapı Mandalı', 'Kapı Contası', 'Kapı Menteşesi', 'Kapı Camı',
+                'Fan Motoru', 'Fan Motor Kapasitörü', 'Fan Pervanesi', 'Fan Bilyası',
+                'Rezistans (Isıtıcı)', 'Rezistans Contası', 'Termostat', 'Emniyet Termostatı',
+                'Nem Sensörü', 'Kondenser Sensörü', 'Sıcaklık Sensörü', 'Oda Sensörü',
+                'Tahliye Pompası', 'Su Tankı', 'Su Tankı Sensörü', 'Su Hortumu', 'Tahliye Hortumu',
+                'Hava Filtresi', 'Toz Filtresi', 'Kumaş Filtresi', 'Filtre Temizleme',
+                'Ana Kart', 'Ekran Kartı', 'Display Panel', 'Kontrol Paneli',
+                'Program Çarkı', 'Program Kadranı', 'Basma Düğmesi', 'Anahtar', 'Start Düğmesi',
+                'Buzzer', 'Ses Uyarıcı', 'Sinyal Lambası',
+                'Tambur Rulmanı', 'Tambur Keçesi', 'Tambur Mili', 'Tambur Contası',
+                'Kayış', 'Motor Kayışı', 'Tambur Kayışı', 'Kayış Gergisi',
+                'Şok Emici Ayak', 'Titreşim Amortisörü', 'Seviye Ayarı', 'Ayak Pedi',
+                'Gövde Contası', 'Arka Panel', 'Ön Panel', 'Yan Panel', 'Üst Panel',
+                'Bacasız Sistem', 'Bacalı Sistem', 'Hava Kanalı', 'Hava Hortumu'
+            ],
+            'kurutma': [
+                'Kompresör', 'Kompresör Kapasitörü', 'Kompresör Termik', 'Kompresör Rölesi',
+                'Kompresör Bobin', 'Kompresör Valv', 'Kompresör Contası',
+                'Kondenser', 'Kondenser Fanı', 'Kondenser NTC', 'Kondenser Contası',
+                'Evaporatör', 'Evaporatör Fanı', 'Evaporatör NTC', 'Evaporatör Contası',
+                'Kapı Kilidi', 'Kapı Mandalı', 'Kapı Contası', 'Kapı Menteşesi', 'Kapı Camı',
+                'Fan Motoru', 'Fan Motor Kapasitörü', 'Fan Pervanesi', 'Fan Bilyası',
+                'Rezistans (Isıtıcı)', 'Rezistans Contası', 'Termostat', 'Emniyet Termostatı',
+                'Nem Sensörü', 'Kondenser Sensörü', 'Sıcaklık Sensörü', 'Oda Sensörü',
+                'Tahliye Pompası', 'Su Tankı', 'Su Tankı Sensörü', 'Su Hortumu', 'Tahliye Hortumu',
+                'Hava Filtresi', 'Toz Filtresi', 'Kumaş Filtresi', 'Filtre Temizleme',
+                'Ana Kart', 'Ekran Kartı', 'Display Panel', 'Kontrol Paneli',
+                'Program Çarkı', 'Program Kadranı', 'Basma Düğmesi', 'Anahtar', 'Start Düğmesi',
+                'Buzzer', 'Ses Uyarıcı', 'Sinyal Lambası',
+                'Tambur Rulmanı', 'Tambur Keçesi', 'Tambur Mili', 'Tambur Contası',
+                'Kayış', 'Motor Kayışı', 'Tambur Kayışı', 'Kayış Gergisi',
+                'Şok Emici Ayak', 'Titreşim Amortisörü', 'Seviye Ayarı', 'Ayak Pedi',
+                'Gövde Contası', 'Arka Panel', 'Ön Panel', 'Yan Panel', 'Üst Panel',
+                'Bacasız Sistem', 'Bacalı Sistem', 'Hava Kanalı', 'Hava Hortumu'
+            ]
+        };
+        
+        // Depolanan parça verileri
+        let currentParts = [];
+        const STORAGE_KEY = 'karaca_depo_data';
+        
+        // Random parça kodu oluştur
+        function generatePartCode() {
+            return Math.floor(10000 + Math.random() * 90000); // 5 haneli random
+        }
+        
+        // Random stok miktarı (1-10 arası)
+        function generateRandomStock() {
+            return Math.floor(Math.random() * 10) + 1;
+        }
+        
+        // Dosya yükleme işlemi
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('previewImage');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    document.getElementById('uploadArea').classList.add('has-image');
+                    showToast('Etiket yüklendi');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Parça listesi oluştur
+        function generatePartsList() {
+            const cihazTuru = document.getElementById('cihazTuru').value.trim().toLowerCase();
+            
+            if (!cihazTuru) {
+                showToast('Lütfen cihaz türü girin');
+                return;
+            }
+            
+            // Cihaz türüne göre parçaları bul
+            let parts = [];
+            for (const [key, value] of Object.entries(PARTS_DATABASE)) {
+                if (cihazTuru.includes(key)) {
+                    parts = value;
+                    break;
+                }
+            }
+            
+            if (parts.length === 0) {
+                showToast('Bu cihaz türü için parça listesi bulunamadı');
+                return;
+            }
+            
+            // Parça listesi oluştur
+            currentParts = parts.map((partName, index) => ({
+                id: Date.now() + index,
+                code: generatePartCode(),
+                name: partName,
+                stock: generateRandomStock(),
+                price: '',
+                ordered: false
+            }));
+            
+            // Önceki kaydedilmiş verileri yükle
+            const savedData = loadSavedData(cihazTuru);
+            if (savedData) {
+                currentParts = currentParts.map(part => {
+                    const saved = savedData.find(p => p.name === part.name);
+                    if (saved) {
+                        return {
+                            ...part,
+                            stock: saved.stock,
+                            price: saved.price,
+                            ordered: saved.ordered || false
+                        };
+                    }
+                    return part;
+                });
+            }
+            
+            // Tabloyu göster
+            renderPartsTable();
+            updateStats();
+            
+            // Başlık güncelle
+            document.getElementById('deviceTypeDisplay').textContent = 
+                document.getElementById('cihazTuru').value;
+            document.getElementById('devicePartCount').textContent = 
+                `${currentParts.length} Parça`;
+            
+            // Kategori badge güncelle
+            updateCategoryBadge(cihazTuru);
+            
+            // Göster
+            document.getElementById('partsCard').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            
+            showToast(`${currentParts.length} parça listelendi`);
+        }
+        
+        // Kategori badge güncelle
+        function updateCategoryBadge(cihazTuru) {
+            const badge = document.getElementById('categoryBadge');
+            let category = 'GENEL';
+            let className = 'badge-camasir';
+            
+            if (cihazTuru.includes('çamaşır') || cihazTuru.includes('camasir')) {
+                category = 'ÇAMAŞIR';
+                className = 'badge-camasir';
+            } else if (cihazTuru.includes('bulaşık') || cihazTuru.includes('bulasik')) {
+                category = 'BULAŞIK';
+                className = 'badge-bulasik';
+            } else if (cihazTuru.includes('kombi')) {
+                category = 'KOMBİ';
+                className = 'badge-kombi';
+            } else if (cihazTuru.includes('klima')) {
+                category = 'KLİMA';
+                className = 'badge-klima';
+            } else if (cihazTuru.includes('buzdolabı') || cihazTuru.includes('buzdolabi')) {
+                category = 'BUZDOLABI';
+                className = 'badge-buzdolabi';
+            } else if (cihazTuru.includes('kurutma')) {
+                category = 'KURUTMA';
+                className = 'badge-kurutma';
+            }
+            
+            badge.textContent = category;
+            badge.className = 'category-badge ' + className;
+        }
+        
+        // Parça tablosunu render et
+        function renderPartsTable() {
+            const tbody = document.getElementById('partsTableBody');
+            
+            tbody.innerHTML = currentParts.map((part, index) => `
+                <tr data-id="${part.id}">
+                    <td class="part-code">${part.code}</td>
+                    <td class="part-name">${part.name}</td>
+                    <td>
+                        <input type="number" class="stock-input" value="${part.stock}" 
+                            min="0" onchange="updateStock(${index}, this.value)" 
+                            style="${part.stock < 3 ? 'background:#fef3c7;' : ''}">
+                    </td>
+                    <td>
+                        <input type="number" class="price-input" value="${part.price}" 
+                            placeholder="0.00" step="0.01" onchange="updatePrice(${index}, this.value)">
+                    </td>
+                    <td>
+                        <button class="order-btn ${part.ordered ? 'ordered' : ''}" 
+                            onclick="toggleOrder(${index})">
+                            ${part.ordered ? '✓ Siparişte' : 'Sipariş Ver'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Stok güncelle
+        function updateStock(index, value) {
+            currentParts[index].stock = parseInt(value) || 0;
+            updateStats();
+            
+            // Düşük stok uyarısı
+            const input = document.querySelectorAll('.stock-input')[index];
+            if (currentParts[index].stock < 3) {
+                input.style.background = '#fef3c7';
+            } else {
+                input.style.background = '';
+            }
+        }
+        
+        // Fiyat güncelle
+        function updatePrice(index, value) {
+            currentParts[index].price = value;
+        }
+        
+        // Sipariş durumu değiştir
+        function toggleOrder(index) {
+            currentParts[index].ordered = !currentParts[index].ordered;
+            renderPartsTable();
+            
+            if (currentParts[index].ordered) {
+                showToast(`${currentParts[index].name} sipariş listesine eklendi`);
+            } else {
+                showToast(`${currentParts[index].name} sipariş listesinden çıkarıldı`);
+            }
+        }
+        
+        // İstatistikleri güncelle
+        function updateStats() {
+            const totalDevices = new Set(currentParts.map(p => p.name)).size;
+            const totalParts = currentParts.length;
+            const lowStock = currentParts.filter(p => p.stock < 3).length;
+            
+            document.getElementById('totalDevices').textContent = totalDevices;
+            document.getElementById('totalParts').textContent = totalParts;
+            document.getElementById('lowStock').textContent = lowStock;
+        }
+        
+        // Stok verilerini kaydet
+        function saveStockData() {
+            const cihazTuru = document.getElementById('cihazTuru').value.trim();
+            if (!cihazTuru) return;
+            
+            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            savedData[cihazTuru] = currentParts;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
+            
+            showToast('Stok bilgileri kaydedildi');
+        }
+        
+        // Kaydedilmiş verileri yükle
+        function loadSavedData(cihazTuru) {
+            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            return savedData[cihazTuru] || null;
+        }
+        
+        // Sipariş listesini export et
+        function exportOrderList() {
+            const orderedParts = currentParts.filter(p => p.ordered);
+            
+            if (orderedParts.length === 0) {
+                showToast('Sipariş edilecek parça yok');
+                return;
+            }
+            
+            const cihazTuru = document.getElementById('cihazTuru').value.trim();
+            const modelNo = document.getElementById('modelNo').value.trim();
+            const date = new Date().toLocaleDateString('tr-TR');
+            
+            let content = `KARACA YEDEK PARÇA SİPARİŞ LİSTESİ\n`;
+            content += `================================\n`;
+            content += `Tarih: ${date}\n`;
+            content += `Cihaz Türü: ${cihazTuru}\n`;
+            if (modelNo) content += `Model No: ${modelNo}\n`;
+            content += `================================\n\n`;
+            
+            orderedParts.forEach((part, index) => {
+                content += `${index + 1}. Parça Kodu: ${part.code}\n`;
+                content += `   Parça Adı: ${part.name}\n`;
+                content += `   Miktar: 1 adet\n`;
+                if (part.price) content += `   Birim Fiyat: ${part.price} ₺\n`;
+                content += `\n`;
+            });
+            
+            content += `================================\n`;
+            content += `Toplam Sipariş: ${orderedParts.length} parça\n`;
+            
+            // TXT dosyası indir
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Siparis_Listesi_${cihazTuru.replace(/\s+/g, '_')}_${date.replace(/\//g, '-')}.txt`;
+            link.click();
+            
+            showToast('Sipariş listesi indirildi');
+        }
+        
+        // Toast göster
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // Geri dön
+        function geriDon() {
+            window.location.href = 'ana-sayfa.html';
+        }
+        
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kaydedilmiş verileri yükle
+            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            const deviceCount = Object.keys(savedData).length;
+            
+            if (deviceCount > 0) {
+                document.getElementById('totalDevices').textContent = deviceCount;
+                
+                let totalParts = 0;
+                let lowStock = 0;
+                Object.values(savedData).forEach(parts => {
+                    totalParts += parts.length;
+                    lowStock += parts.filter(p => p.stock < 3).length;
+                });
+                
+                document.getElementById('totalParts').textContent = totalParts;
+                document.getElementById('lowStock').textContent = lowStock;
+            }
+        });
+    </script>
+</body>
+</html>
