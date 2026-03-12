@@ -796,11 +796,10 @@ Lütfen bu cihaz için olası arızaları, arıza kodlarını, nedenlerini ve ç
 Lütfen en az 3-5 farklı arıza senaryosu sunun. Gerçek servis tecrübesine dayalı, pratik çözümler verin.
 `;
 
-                // CORS proxy kullan
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_GEMINI_API_KEY`;
+                // CORS proxy kullan - Cloudflare Workers
+                const proxyUrl = 'https://karaca-ai-proxy.workers.dev/gemini'; // Cloudflare Worker URL
                 
-                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl), {
+                const response = await fetch(proxyUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
