@@ -796,8 +796,8 @@ Lütfen bu cihaz için olası arızaları, arıza kodlarını, nedenlerini ve ç
 Lütfen en az 3-5 farklı arıza senaryosu sunun. Gerçek servis tecrübesine dayalı, pratik çözümler verin.
 `;
 
-                // CORS proxy kullan - Cloudflare Workers
-                const proxyUrl = 'https://karaca-ai-proxy.workers.dev/gemini'; // Cloudflare Worker URL
+                // Vercel API kullan
+                const proxyUrl = '/api/gemini';
                 
                 const response = await fetch(proxyUrl, {
                     method: 'POST',
