@@ -751,29 +751,153 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
         
-        // Analyze function
-        function analizEt() {
-            const marka = document.getElementById('marka').value.trim().toLowerCase();
-            const tur = document.getElementById('tur').value.trim().toLowerCase();
+        // Analyze function - Google Gemini API
+        async function analizEt() {
+            const marka = document.getElementById('marka').value.trim();
+            const tur = document.getElementById('tur').value.trim();
             const model = document.getElementById('model').value.trim();
-            const arizaKodu = document.getElementById('arizaKodu').value.trim().toUpperCase();
+            const arizaKodu = document.getElementById('arizaKodu').value.trim();
             
             if (!marka || !tur) {
-                showToast('Lütfen marka ve cihaz türü girin');
+                showToast('Lütfen marka ve cihaz türü giriniz');
                 return;
             }
             
-            // Show loading
-            document.getElementById('loadingContainer').classList.add('show');
-            document.getElementById('resultsCard').classList.remove('show');
+            // Loading state
+            document.getElementById('errorList').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>AI analiz ediliyor...</p>
+                    <p style="font-size:12px;color:#6b7280;margin-top:10px">Google Gemini bağlantısı kuruluyor</p>
+                </div>
+            `;
+            document.getElementById('resultsCard').classList.add('show');
             
-            // Simulate AI processing
-            setTimeout(() => {
-                document.getElementById('loadingContainer').classList.remove('show');
+            try {
+                // Google Gemini API çağrısı
+                const prompt = `
+Cihaz bilgileri:
+- Marka: ${marka}
+- Tür: ${tur}
+- Model: ${model || 'Belirtilmemiş'}
+- Arıza Kodu: ${arizaKodu || 'Belirtilmemiş'}
+
+Lütfen bu cihaz için olası arızaları, arıza kodlarını, nedenlerini ve çözüm önerilerini aşağıdaki formatta listeleyin:
+
+1. ARIZA KODU: [KOD]
+   - Arıza Adı: [AD]
+   - Risk Seviyesi: [YÜKSEK/ORTA/DÜŞÜK]
+   - Açıklama: [DETAYLI AÇIKLAMA]
+   - Çözüm Önerileri:
+     • [ÇÖZÜM 1]
+     • [ÇÖZÜM 2]
+     • [ÇÖZÜM 3]
+
+Lütfen en az 3-5 farklı arıza senaryosu sunun. Gerçek servis tecrübesine dayalı, pratik çözümler verin.
+`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_GEMINI_API_KEY`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                parts: [
+                                    {
+                                        text: `Sen uzun yıllara dayalı tecrübesi olan bir servis teknisyenisin. Kullanıcıya cihaz arızaları hakkında detaylı ve pratik bilgiler sunuyorsun.\n\n${prompt}`
+                                    }
+                                ]
+                            }
+                        ],
+                        generationConfig: {
+                            temperature: 0.3,
+                            maxOutputTokens: 2000,
+                        }
+                    })
+                });
                 
-                const hatalar = getHatalar(marka, tur, arizaKodu);
-                gosterSonuclar(marka, tur, model, hatalar);
-            }, 1500);
+                if (!response.ok) {
+                    throw new Error('Gemini API bağlantısı başarısız');
+                }
+                
+                const data = await response.json();
+                const aiResponse = data.candidates[0].content.parts[0].text;
+                
+                // AI yanıtını parse et ve göster
+                const aiHatalar = parseAIResponse(aiResponse);
+                gosterSonuclar(marka, tur, model, aiHatalar);
+                
+            } catch (error) {
+                console.error('Gemini API Error:', error);
+                
+                // Fallback: Local veritabanı
+                showToast('AI bağlantısı başarısız, yerel veritabanı kullanılıyor...');
+                
+                setTimeout(() => {
+                    const hatalar = getHatalar(marka, tur, arizaKodu);
+                    gosterSonuclar(marka, tur, model, hatalar);
+                }, 1500);
+            }
+        }
+        
+        // AI yanıtını parse et
+        function parseAIResponse(response) {
+            const hatalar = [];
+            const sections = response.split(/\d+\.\s*ARIZA\s*KODU:/i);
+            
+            for (let i = 1; i < sections.length; i++) {
+                const section = sections[i].trim();
+                if (!section) continue;
+                
+                const hata = {
+                    kod: 'AI-' + String(i).padStart(3, '0'),
+                    title: '',
+                    desc: '',
+                    severity: 'medium',
+                    solutions: []
+                };
+                
+                // Parse sections
+                const lines = section.split('\n').map(line => line.trim()).filter(line => line);
+                
+                for (const line of lines) {
+                    if (line.startsWith('Arıza Adı:')) {
+                        hata.title = line.replace('Arıza Adı:', '').trim();
+                    } else if (line.startsWith('Açıklama:')) {
+                        hata.desc = line.replace('Açıklama:', '').trim();
+                    } else if (line.startsWith('Risk Seviyesi:')) {
+                        const risk = line.replace('Risk Seviyesi:', '').trim().toUpperCase();
+                        if (risk.includes('YÜKSEK')) hata.severity = 'high';
+                        else if (risk.includes('ORTA')) hata.severity = 'medium';
+                        else hata.severity = 'low';
+                    } else if (line.startsWith('•') || line.startsWith('-')) {
+                        hata.solutions.push(line.replace(/^[•-]\s*/, '').trim());
+                    }
+                }
+                
+                // Default values if missing
+                if (!hata.title) hata.title = `Arıza ${i}`;
+                if (!hata.desc) hata.desc = 'AI tarafından tespit edilen arıza.';
+                if (hata.solutions.length === 0) {
+                    hata.solutions = [
+                        'Cihazı kontrol edin',
+                        'Teknik destek alın',
+                        'Servis çağırın'
+                    ];
+                }
+                
+                hatalar.push(hata);
+            }
+            
+            return hatalar.length > 0 ? hatalar : [{
+                kod: 'AI-001',
+                title: 'AI Analiz Sonucu',
+                desc: response.substring(0, 200) + '...',
+                severity: 'medium',
+                solutions: ['Detaylı analiz için teknik destek alın']
+            }];
         }
         
         // Get errors based on inputs - Fuzzy matching
